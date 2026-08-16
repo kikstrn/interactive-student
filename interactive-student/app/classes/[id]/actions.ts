@@ -100,3 +100,47 @@ export async function deleteStudent(
     revalidatePath(`/classes/${classId}`);
     revalidatePath("/dashboard");
 }
+
+export async function updateStudent(
+    studentId: string,
+    classId: string,
+    formData: FormData
+) {
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        redirect("/login");
+    }
+
+    const firstName = String(formData.get("firstName") ?? "").trim();
+    const lastName = String(formData.get("lastName") ?? "").trim();
+    const level = String(formData.get("level") ?? "beginner");
+    const avatar = String(formData.get("avatar") ?? "🙂");
+
+    if (!firstName) {
+        return;
+    }
+
+    const { error } = await supabase
+        .from("students")
+        .update({
+            first_name: firstName,
+            last_name: lastName || null,
+            level,
+            avatar,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", studentId);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    revalidatePath(`/classes/${classId}`);
+    revalidatePath(`/classes/${classId}/play`);
+}
