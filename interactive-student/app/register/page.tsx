@@ -1,9 +1,10 @@
 import Link from "next/link";
 import KlikaoLogo from "@/components/brand/klikao-logo";
-import { register } from "./actions";
+import { requestAccess } from "./actions";
 
 type RegisterPageProps = {
     searchParams: Promise<{
+        sent?: string;
         error?: string;
     }>;
 };
@@ -14,117 +15,136 @@ export default async function RegisterPage({
     const params = await searchParams;
 
     return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-            <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-sm">
-                <div className="mb-8 flex flex-col items-center text-center">
+        <main className="klikao-auth-background flex min-h-screen items-center justify-center px-4 py-10">
+            <div className="klikao-surface w-full max-w-xl rounded-[2rem] p-8 sm:p-10">
+                <div className="flex flex-col items-center text-center">
                     <KlikaoLogo
                         href="/"
                         priority
                         variant="auth"
                     />
 
-                    <h1 className="mt-6 text-2xl font-black text-slate-900 sm:text-3xl">
-                        Créer mon compte
+                    <h1 className="mt-7 text-2xl font-black text-slate-900 sm:text-3xl">
+                        Demander un accès à KLIKAO
                     </h1>
 
-                    <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-                        Une confirmation par email sera demandée avant la première connexion.
+                    <p className="mt-3 max-w-md text-sm leading-7 text-slate-500 sm:text-base">
+                        KLIKAO est actuellement accessible sur invitation.
+                        Envoyez votre demande et vous recevrez une invitation
+                        après validation.
                     </p>
                 </div>
 
-                {params.error && (
-                    <div className="mb-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">
-                        {params.error === "password-too-short"
-                            ? "Le mot de passe doit contenir au moins 8 caractères."
-                            : params.error === "password-mismatch"
-                              ? "Les deux mots de passe ne correspondent pas."
-                              : "Impossible de créer le compte."}
+                {params.sent && (
+                    <div className="mt-7 rounded-2xl border border-teal-100 bg-teal-50 p-5 text-center">
+                        <p className="font-black text-teal-800">
+                            ✓ Votre demande a bien été envoyée
+                        </p>
+
+                        <p className="mt-2 text-sm leading-6 text-teal-700">
+                            Vous recevrez votre invitation KLIKAO par email
+                            après validation de votre demande.
+                        </p>
                     </div>
                 )}
 
-                <form action={register} className="grid gap-5 sm:grid-cols-2">
-                    <div>
-                        <label className="mb-2 block text-sm font-bold text-slate-700">
-                            Prénom
-                        </label>
-                        <input
-                            name="firstName"
-                            required
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
-                        />
+                {params.error && (
+                    <div className="mt-7 rounded-2xl border border-red-100 bg-red-50 p-5 text-sm font-semibold text-red-700">
+                        {params.error === "missing-fields"
+                            ? "Merci de renseigner votre prénom, votre nom et votre adresse email."
+                            : params.error === "invalid-email"
+                              ? "L'adresse email renseignée n'est pas valide."
+                              : params.error === "configuration"
+                                ? "L'envoi des demandes n'est pas encore configuré."
+                                : "Impossible d'envoyer votre demande pour le moment. Merci de réessayer."}
                     </div>
+                )}
 
-                    <div>
-                        <label className="mb-2 block text-sm font-bold text-slate-700">
-                            Nom
-                        </label>
-                        <input
-                            name="lastName"
-                            required
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
-                        />
-                    </div>
+                {!params.sent && (
+                    <form action={requestAccess} className="mt-8 grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Prénom *
+                            </label>
+                            <input
+                                name="firstName"
+                                required
+                                autoComplete="given-name"
+                                className="klikao-focus w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition focus:bg-white"
+                            />
+                        </div>
 
-                    <div className="sm:col-span-2">
-                        <label className="mb-2 block text-sm font-bold text-slate-700">
-                            Adresse email
-                        </label>
-                        <input
-                            name="email"
-                            type="email"
-                            required
-                            autoComplete="email"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
-                        />
-                    </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Nom *
+                            </label>
+                            <input
+                                name="lastName"
+                                required
+                                autoComplete="family-name"
+                                className="klikao-focus w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition focus:bg-white"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="mb-2 block text-sm font-bold text-slate-700">
-                            Mot de passe
-                        </label>
-                        <input
-                            name="password"
-                            type="password"
-                            minLength={8}
-                            required
-                            autoComplete="new-password"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
-                        />
-                    </div>
+                        <div className="sm:col-span-2">
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Adresse email *
+                            </label>
+                            <input
+                                name="email"
+                                type="email"
+                                required
+                                autoComplete="email"
+                                placeholder="vous@ecole.fr"
+                                className="klikao-focus w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white"
+                            />
+                        </div>
 
-                    <div>
-                        <label className="mb-2 block text-sm font-bold text-slate-700">
-                            Confirmer
-                        </label>
-                        <input
-                            name="confirmPassword"
-                            type="password"
-                            minLength={8}
-                            required
-                            autoComplete="new-password"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
-                        />
-                    </div>
+                        <div className="sm:col-span-2">
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Établissement
+                            </label>
+                            <input
+                                name="school"
+                                placeholder="Ex : École Jean Moulin"
+                                className="klikao-focus w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white"
+                            />
+                        </div>
 
-                    <div className="sm:col-span-2">
-                        <button
-                            type="submit"
-                            className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition hover:bg-indigo-500"
+                        <div className="sm:col-span-2">
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Message
+                            </label>
+                            <textarea
+                                name="message"
+                                rows={4}
+                                placeholder="Vous pouvez préciser votre classe ou votre besoin..."
+                                className="klikao-focus w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:bg-white"
+                            />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <button
+                                type="submit"
+                                className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 active:scale-[0.99]"
+                            >
+                                ✉️ Envoyer ma demande
+                            </button>
+                        </div>
+                    </form>
+                )}
+
+                <div className="mt-8 border-t border-slate-100 pt-6 text-center">
+                    <p className="text-sm text-slate-500">
+                        Vous avez déjà un compte ?{" "}
+                        <Link
+                            href="/login"
+                            className="font-black text-indigo-600 transition hover:text-indigo-500"
                         >
-                            Créer mon compte
-                        </button>
-                    </div>
-                </form>
-
-                <p className="mt-6 text-center text-sm text-slate-500">
-                    Vous avez déjà un compte ?{" "}
-                    <Link
-                        href="/login"
-                        className="font-bold text-indigo-600"
-                    >
-                        Se connecter
-                    </Link>
-                </p>
+                            Se connecter
+                        </Link>
+                    </p>
+                </div>
             </div>
         </main>
     );
