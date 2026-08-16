@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ExitClassMode from "./exit-class-mode";
@@ -50,15 +51,28 @@ export default async function PlayPage({
 
     return (
         <main className="min-h-screen bg-slate-950 text-white">
-            <header className="flex items-center justify-between px-8 py-6">
-                <div>
+            <header className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-8 sm:py-6">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 p-2">
+                        <Image
+                            src="/branding/klikao-mark.png"
+                            alt="KLIKAO"
+                            width={48}
+                            height={48}
+                            priority
+                            className="h-full w-full object-contain"
+                        />
+                    </div>
+
+                    <div>
                     <p className="text-sm font-medium text-slate-400">
                         Mode Classe
                     </p>
 
-                    <h1 className="text-3xl font-bold">
-                        {classItem.name}
-                    </h1>
+                    <h1 className="text-2xl font-black sm:text-3xl">
+                            {classItem.name}
+                        </h1>
+                    </div>
                 </div>
 
                 <ExitClassMode classId={id} />
@@ -85,7 +99,7 @@ export default async function PlayPage({
                             <Link
                                 key={student.id}
                                 href={`/classes/${id}/play/${student.id}`}
-                                className="group flex min-h-48 flex-col items-center justify-center rounded-3xl bg-white/10 p-6 text-center transition hover:scale-105 hover:bg-white/20 active:scale-95"
+                                className="group flex min-h-48 flex-col items-center justify-center rounded-3xl bg-white/10 p-6 text-center transition hover:scale-105 hover:bg-indigo-500/25 active:scale-95"
                             >
                                 <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white text-6xl shadow-xl transition group-hover:scale-110">
                                     {student.avatar ?? "🙂"}

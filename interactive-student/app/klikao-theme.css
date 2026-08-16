@@ -1,0 +1,61 @@
+/*
+ * KLIKAO — palette officielle
+ *
+ * Indigo   #6366F1
+ * Turquoise #10BFA9
+ * Navy      #0F172A
+ * Slate     #F1F5F9
+ */
+
+:root {
+    --klikao-indigo: #6366F1;
+    --klikao-indigo-dark: #4F46E5;
+    --klikao-teal: #10BFA9;
+    --klikao-navy: #0F172A;
+    --klikao-slate: #F1F5F9;
+    --klikao-white: #FFFFFF;
+
+    --klikao-primary: var(--klikao-indigo);
+    --klikao-accent: var(--klikao-teal);
+    --klikao-text: var(--klikao-navy);
+    --klikao-background: var(--klikao-slate);
+
+    --klikao-gradient:
+        linear-gradient(135deg, #6366F1 0%, #10BFA9 100%);
+}
+
+.klikao-gradient {
+    background: var(--klikao-gradient);
+}
+
+.klikao-brand-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+}
+
+.klikao-primary-button {
+    background: #6366F1;
+    color: #FFFFFF;
+    border-radius: 0.875rem;
+    font-weight: 700;
+    transition:
+        transform 160ms ease,
+        background 160ms ease;
+}
+
+.klikao-primary-button:hover {
+    background: #4F46E5;
+}
+
+.klikao-primary-button:active {
+    transform: scale(0.98);
+}
+
+.klikao-accent-button {
+    background: #10BFA9;
+    color: #0F172A;
+    border-radius: 0.875rem;
+    font-weight: 700;
+}

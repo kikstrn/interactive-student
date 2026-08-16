@@ -1,8 +1,15 @@
 import Link from "next/link";
+import {
+    BookOpen,
+    Settings,
+    LogOut,
+    Globe2,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { logout } from "./actions";
 import CreateClassForm from "./create-class-form";
+import KlikaoLogo from "@/components/brand/klikao-logo";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -40,33 +47,86 @@ export default async function DashboardPage() {
 
     return (
         <main className="min-h-screen bg-slate-50">
-            <header className="border-b border-slate-200 bg-white">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-                    <div>
-                        <h1 className="text-xl font-bold text-slate-900">
-                            Interactive Student 🎓
-                        </h1>
+            <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_rgba(15,23,42,0.03)] backdrop-blur-xl">
+                <div className="mx-auto flex min-h-[78px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <KlikaoLogo
+                            href="/dashboard"
+                            priority
+                            variant="header"
+                        />
 
-                        <p className="text-sm text-slate-500">
-                            Espace enseignant
-                        </p>
+                        <div className="hidden h-9 w-px bg-slate-200 lg:block" />
+
+                        <div className="hidden lg:block">
+                            <p className="text-sm font-bold text-slate-700">
+                                Espace enseignant
+                            </p>
+                            <p className="mt-0.5 text-xs text-slate-400">
+                                Tableau de bord
+                            </p>
+                        </div>
                     </div>
 
-                    <Link
-                        href="/settings"
-                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    <nav
+                        aria-label="Navigation enseignant"
+                        className="flex shrink-0 items-center gap-2"
                     >
-                        Paramètres
-                    </Link>
-
-                    <form action={logout}>
-                        <button
-                            type="submit"
-                            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        <Link
+                            href="/categories"
+                            title="Exercices"
+                            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md md:w-auto md:gap-2.5 md:px-4"
                         >
-                            Déconnexion
-                        </button>
-                    </form>
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-100">
+                                <BookOpen size={17} />
+                            </span>
+                            <span className="hidden text-sm font-bold md:inline">
+                                Exercices
+                            </span>
+                        </Link>
+
+                        <Link
+                            href="/workshop"
+                            title="Workshop"
+                            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-100 bg-teal-50/70 text-teal-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-100 hover:shadow-md lg:w-auto lg:gap-2.5 lg:px-4"
+                        >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/80 text-teal-600">
+                                <Globe2 size={17} />
+                            </span>
+                            <span className="hidden text-sm font-bold lg:inline">
+                                Workshop
+                            </span>
+                        </Link>
+
+                        <Link
+                            href="/settings"
+                            title="Paramètres"
+                            className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md xl:w-auto xl:gap-2.5 xl:px-4"
+                        >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition group-hover:bg-indigo-100 group-hover:text-indigo-600">
+                                <Settings size={17} />
+                            </span>
+                            <span className="hidden text-sm font-bold xl:inline">
+                                Paramètres
+                            </span>
+                        </Link>
+
+                        <form action={logout}>
+                            <button
+                                type="submit"
+                                title="Déconnexion"
+                                aria-label="Déconnexion"
+                                className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-red-100 bg-red-50/70 text-red-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-red-200 hover:bg-red-100 hover:shadow-md 2xl:w-auto 2xl:gap-2.5 2xl:px-4"
+                            >
+                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/80 text-red-500">
+                                    <LogOut size={17} />
+                                </span>
+                                <span className="hidden text-sm font-bold 2xl:inline">
+                                    Déconnexion
+                                </span>
+                            </button>
+                        </form>
+                    </nav>
                 </div>
             </header>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import KlikaoPageHeader from "@/components/brand/klikao-page-header";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import StudentForm from "./student-form";
@@ -56,32 +57,22 @@ export default async function ClassPage({
 
     return (
         <main className="min-h-screen bg-slate-50">
-            <header className="border-b border-slate-200 bg-white">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-                    <div>
-                        <Link
-                            href="/dashboard"
-                            className="text-sm font-medium text-slate-500 hover:text-slate-900"
-                        >
-                            ← Dashboard
-                        </Link>
 
-                        <h1 className="mt-2 text-2xl font-bold text-slate-900">
-                            {classItem.name}
-                        </h1>
-
-                        <div className="mt-1 flex gap-3 text-sm text-slate-500">
-                            {classItem.grade && (
-                                <span>{classItem.grade}</span>
-                            )}
-
-                            {classItem.school_year && (
-                                <span>{classItem.school_year}</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <KlikaoPageHeader
+                backHref="/dashboard"
+                backLabel="Dashboard"
+                title={classItem.name}
+                subtitle={[classItem.grade, classItem.school_year]
+                    .filter(Boolean)
+                    .join(" · ")}
+            >
+                <Link
+                    href={`/classes/${id}/play`}
+                    className="flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+                >
+                    ▶ Mode Classe
+                </Link>
+            </KlikaoPageHeader>
 
             <div className="mx-auto max-w-7xl px-6 py-10">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -97,12 +88,6 @@ export default async function ClassPage({
                     </div>
 
                     <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:items-start">
-                        <Link
-                            href={`/classes/${id}/play`}
-                            className="flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-500"
-                        >
-                            ▶ Mode Classe
-                        </Link>
 
                         <div className="w-full sm:min-w-64 lg:w-auto lg:min-w-72">
                             <StudentForm classId={id} />

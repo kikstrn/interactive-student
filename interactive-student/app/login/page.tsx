@@ -1,10 +1,13 @@
 import Link from "next/link";
+import KlikaoLogo from "@/components/brand/klikao-logo";
 import { login } from "./actions";
 
 type LoginPageProps = {
     searchParams: Promise<{
         error?: string;
-        registered?: string;
+        confirmed?: string;
+        checkEmail?: string;
+        passwordUpdated?: string;
     }>;
 };
 
@@ -14,68 +17,82 @@ export default async function LoginPage({
     const params = await searchParams;
 
     return (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
             <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-sm">
-                <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-bold text-slate-900">
-                        Interactive Student
-                    </h1>
+                <div className="mb-8 flex flex-col items-center text-center">
+                    <KlikaoLogo
+                        href="/"
+                        priority
+                        variant="auth"
+                    />
 
-                    <p className="mt-2 text-slate-500">
-                        Connexion à votre espace enseignant
+                    <p className="mt-5 text-sm leading-6 text-slate-500">
+                        Connectez-vous à votre espace enseignant.
                     </p>
                 </div>
 
-                {params.registered && (
-                    <div className="mb-6 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700">
-                        Votre compte a été créé. Vous pouvez vous connecter.
+                {params.checkEmail && (
+                    <div className="mb-5 rounded-xl bg-sky-50 p-4 text-sm font-semibold text-sky-700">
+                        Compte créé. Consultez votre boîte mail pour confirmer votre adresse avant de vous connecter.
+                    </div>
+                )}
+
+                {params.confirmed && (
+                    <div className="mb-5 rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                        Adresse email confirmée. Vous pouvez maintenant vous connecter.
+                    </div>
+                )}
+
+                {params.passwordUpdated && (
+                    <div className="mb-5 rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                        Votre mot de passe a été modifié.
                     </div>
                 )}
 
                 {params.error && (
-                    <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-700">
-                        Adresse email ou mot de passe incorrect.
+                    <div className="mb-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+                        Adresse email ou mot de passe incorrect, ou compte non encore confirmé.
                     </div>
                 )}
 
                 <form action={login} className="space-y-5">
                     <div>
-                        <label
-                            htmlFor="email"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
+                        <label className="mb-2 block text-sm font-bold text-slate-700">
                             Adresse email
                         </label>
-
                         <input
-                            id="email"
                             name="email"
                             type="email"
                             required
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-400"
+                            autoComplete="email"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
                         />
                     </div>
 
                     <div>
-                        <label
-                            htmlFor="password"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Mot de passe
-                        </label>
-
+                        <div className="mb-2 flex items-center justify-between gap-4">
+                            <label className="text-sm font-bold text-slate-700">
+                                Mot de passe
+                            </label>
+                            <Link
+                                href="/forgot-password"
+                                className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                            >
+                                Mot de passe oublié ?
+                            </Link>
+                        </div>
                         <input
-                            id="password"
                             name="password"
                             type="password"
                             required
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-slate-400"
+                            autoComplete="current-password"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+                        className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-bold text-white transition hover:bg-indigo-500"
                     >
                         Se connecter
                     </button>
@@ -85,7 +102,7 @@ export default async function LoginPage({
                     Pas encore de compte ?{" "}
                     <Link
                         href="/register"
-                        className="font-semibold text-slate-900"
+                        className="font-bold text-indigo-600"
                     >
                         Créer un compte
                     </Link>
