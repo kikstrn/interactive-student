@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
-  "name": "interactive-student",
+  "name": "klikao",
+  "keep_vars": true,
   "compatibility_date": "2026-08-16",
   "compatibility_flags": [
     "global_fetch_strictly_public"
