@@ -46,3 +46,19 @@ button,
 a {
     touch-action: manipulation;
 }
+
+button:not(:disabled),
+[role="button"],
+a[href],
+select:not(:disabled),
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) {
+    cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled,
+textarea:disabled {
+    cursor: not-allowed;
+}

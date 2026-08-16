@@ -18,20 +18,35 @@ export async function createStudent(
         redirect("/login");
     }
 
-    const firstName = String(formData.get("firstName") ?? "").trim();
-    const lastName = String(formData.get("lastName") ?? "").trim();
-    const level = String(formData.get("level") ?? "beginner");
+    const firstName = String(
+        formData.get("firstName") ?? ""
+    ).trim();
+
+    const lastName = String(
+        formData.get("lastName") ?? ""
+    ).trim();
+
+    const level = String(
+        formData.get("level") ?? "beginner"
+    );
+
+    const avatar = String(
+        formData.get("avatar") ?? "🙂"
+    );
 
     if (!firstName) {
         return;
     }
 
-    const { error } = await supabase.from("students").insert({
-        class_id: classId,
-        first_name: firstName,
-        last_name: lastName || null,
-        level,
-    });
+    const { error } = await supabase
+        .from("students")
+        .insert({
+            class_id: classId,
+            first_name: firstName,
+            last_name: lastName || null,
+            level,
+            avatar,
+        });
 
     if (error) {
         console.error(error);

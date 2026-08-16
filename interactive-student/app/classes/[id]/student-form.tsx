@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AvatarPicker from "@/components/students/avatar-picker";
 import { createStudent } from "./actions";
 
 type StudentFormProps = {
@@ -12,8 +13,14 @@ export default function StudentForm({
 }: StudentFormProps) {
     const [open, setOpen] = useState(false);
 
-    async function handleSubmit(formData: FormData) {
-        await createStudent(classId, formData);
+    async function handleSubmit(
+        formData: FormData
+    ) {
+        await createStudent(
+            classId,
+            formData
+        );
+
         setOpen(false);
     }
 
@@ -22,7 +29,7 @@ export default function StudentForm({
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800"
+                className="w-full rounded-2xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
             >
                 + Ajouter un élève
             </button>
@@ -30,88 +37,86 @@ export default function StudentForm({
     }
 
     return (
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">
-                    Ajouter un élève
-                </h2>
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-xl font-black text-slate-900">
+                        Ajouter un élève
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500">
+                        Renseignez ses informations
+                        puis choisissez son avatar.
+                    </p>
+                </div>
 
                 <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="text-sm text-slate-500 hover:text-slate-900"
+                    className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100"
                 >
                     Fermer
                 </button>
             </div>
 
-            <form action={handleSubmit} className="space-y-4">
-                <div>
-                    <label
-                        htmlFor="firstName"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Prénom
-                    </label>
+            <form
+                action={handleSubmit}
+                className="space-y-5"
+            >
+                <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Prénom
+                        </label>
 
-                    <input
-                        id="firstName"
-                        name="firstName"
-                        type="text"
-                        required
-                        placeholder="Emma"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-400"
-                    />
+                        <input
+                            name="firstName"
+                            required
+                            placeholder="Ex : Emma"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-bold text-slate-700">
+                            Nom
+                        </label>
+
+                        <input
+                            name="lastName"
+                            placeholder="Ex : Martin"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-indigo-500"
+                        />
+                    </div>
                 </div>
 
                 <div>
-                    <label
-                        htmlFor="lastName"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                    >
-                        Nom
-                    </label>
-
-                    <input
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        placeholder="Martin"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none focus:border-slate-400"
-                    />
-                </div>
-
-                <div>
-                    <label
-                        htmlFor="level"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                    >
+                    <label className="mb-2 block text-sm font-bold text-slate-700">
                         Niveau
                     </label>
 
                     <select
-                        id="level"
                         name="level"
                         defaultValue="beginner"
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-slate-400"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
                     >
                         <option value="beginner">
                             Débutant
                         </option>
-
                         <option value="intermediate">
                             Intermédiaire
                         </option>
-
                         <option value="advanced">
                             Avancé
                         </option>
                     </select>
                 </div>
 
+                <AvatarPicker />
+
                 <button
                     type="submit"
-                    className="w-full rounded-xl bg-slate-900 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+                    className="w-full rounded-2xl bg-indigo-600 px-5 py-4 font-black text-white transition hover:bg-indigo-500 active:scale-[0.99]"
                 >
                     Ajouter l&apos;élève
                 </button>

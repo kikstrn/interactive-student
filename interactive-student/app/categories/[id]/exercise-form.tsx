@@ -13,6 +13,7 @@ export default function ExerciseForm({
     const [open, setOpen] = useState(false);
     const [exerciseType, setExerciseType] = useState("question");
     const [correctChoice, setCorrectChoice] = useState("0");
+    const [shareToWorkshop, setShareToWorkshop] = useState(true);
 
     async function handleSubmit(formData: FormData) {
         await createExercise(categoryId, formData);
@@ -20,6 +21,7 @@ export default function ExerciseForm({
         setOpen(false);
         setExerciseType("question");
         setCorrectChoice("0");
+        setShareToWorkshop(true);
     }
 
     if (!open) {
@@ -43,8 +45,8 @@ export default function ExerciseForm({
                     </h2>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        Il sera automatiquement ajouté à cette catégorie
-                        et publié dans le Workshop.
+                        Créez l&apos;exercice dans cette catégorie et choisissez
+                        s&apos;il doit être partagé avec les autres enseignants.
                     </p>
                 </div>
 
@@ -136,7 +138,7 @@ export default function ExerciseForm({
                                     key={index}
                                     className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
                                         correctChoice === String(index)
-                                            ? "border-emerald-400 bg-emerald-50"
+                                            ? "border-teal-400 bg-teal-50"
                                             : "border-slate-200 bg-white"
                                     }`}
                                 >
@@ -150,7 +152,7 @@ export default function ExerciseForm({
                                         onChange={() =>
                                             setCorrectChoice(String(index))
                                         }
-                                        className="h-5 w-5 accent-emerald-600"
+                                        className="h-5 w-5 accent-teal-600"
                                     />
 
                                     <input
@@ -161,7 +163,7 @@ export default function ExerciseForm({
                                     />
 
                                     {correctChoice === String(index) && (
-                                        <span className="hidden whitespace-nowrap text-xs font-bold text-emerald-700 sm:block">
+                                        <span className="hidden whitespace-nowrap text-xs font-bold text-teal-700 sm:block">
                                             ✓ Bonne réponse
                                         </span>
                                     )}
@@ -188,13 +190,70 @@ export default function ExerciseForm({
                     </div>
                 )}
 
-                <div className="rounded-xl bg-sky-50 px-4 py-3 text-sm text-sky-700">
-                    🌐 Cet exercice sera publié automatiquement dans le Workshop.
+                <div
+                    className={`rounded-2xl border p-5 transition ${
+                        shareToWorkshop
+                            ? "border-teal-200 bg-teal-50/70"
+                            : "border-slate-200 bg-slate-50"
+                    }`}
+                >
+                    <div className="flex items-center justify-between gap-5">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">
+                                    {shareToWorkshop ? "🌐" : "🔒"}
+                                </span>
+
+                                <h3 className="font-black text-slate-900">
+                                    {shareToWorkshop
+                                        ? "Exercice public"
+                                        : "Exercice privé"}
+                                </h3>
+                            </div>
+
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                {shareToWorkshop
+                                    ? "Cet exercice sera publié dans le Workshop et pourra être ajouté par les autres professeurs."
+                                    : "Cet exercice restera uniquement dans votre bibliothèque et ne sera pas visible dans le Workshop."}
+                            </p>
+                        </div>
+
+                        <label className="relative inline-flex shrink-0 cursor-pointer items-center">
+                            <input
+                                type="checkbox"
+                                name="shareToWorkshop"
+                                value="true"
+                                checked={shareToWorkshop}
+                                onChange={(event) =>
+                                    setShareToWorkshop(event.target.checked)
+                                }
+                                className="peer sr-only"
+                            />
+
+                            <span className="h-8 w-14 rounded-full bg-slate-300 transition peer-checked:bg-teal-500 peer-focus-visible:ring-4 peer-focus-visible:ring-teal-100" />
+
+                            <span className="pointer-events-none absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-6" />
+                        </label>
+                    </div>
+
+                    <div className="mt-4 border-t border-black/5 pt-4 text-xs font-bold">
+                        <span
+                            className={
+                                shareToWorkshop
+                                    ? "text-teal-700"
+                                    : "text-slate-500"
+                            }
+                        >
+                            {shareToWorkshop
+                                ? "ON · Visible dans le Workshop"
+                                : "OFF · Visible uniquement par vous"}
+                        </span>
+                    </div>
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full rounded-2xl bg-slate-900 px-5 py-4 font-black text-white transition hover:bg-slate-800 active:scale-[0.99]"
+                    className="w-full rounded-2xl bg-indigo-600 px-5 py-4 font-black text-white transition hover:bg-indigo-500 active:scale-[0.99]"
                 >
                     Enregistrer l&apos;exercice
                 </button>

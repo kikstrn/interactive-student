@@ -38,6 +38,8 @@ export async function createExercise(
     const exerciseType = String(
         formData.get("exerciseType") ?? "question"
     );
+    const shareToWorkshop =
+        formData.get("shareToWorkshop") === "true";
 
     if (!question) {
         return;
@@ -93,15 +95,13 @@ export async function createExercise(
             exercise_type: exerciseType,
             choices,
             active: true,
+            share_to_workshop: shareToWorkshop,
         });
 
     if (error) {
         console.error("createExercise:", error);
         return;
     }
-
-    // Le trigger SQL sync_exercise_to_workshop_trigger
-    // publie automatiquement l'exercice dans le Workshop.
 
     revalidatePath(`/categories/${categoryId}`);
     revalidatePath("/categories");
@@ -133,9 +133,6 @@ export async function deleteExercise(
         console.error("deleteExercise:", error);
         return;
     }
-
-    // La copie Workshop reste disponible.
-    // original_exercise_id passe automatiquement à NULL grâce au FK.
 
     revalidatePath(`/categories/${categoryId}`);
     revalidatePath("/categories");
