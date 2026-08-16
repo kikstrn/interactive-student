@@ -44,7 +44,7 @@ export default async function DashboardPage() {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
                     <div>
                         <h1 className="text-xl font-bold text-slate-900">
-                            Interactive Student
+                            Interactive Student 🎓
                         </h1>
 
                         <p className="text-sm text-slate-500">
