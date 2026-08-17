@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import PasswordInput from "@/components/ui/password-input"
@@ -141,7 +142,7 @@ export default function InvitePage() {
     }, []);
 
     async function handleSubmit(
-        event: React.FormEvent<HTMLFormElement>
+        event: FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
 
@@ -283,7 +284,7 @@ export default function InvitePage() {
 
                                 <PasswordInput
                                     value={password}
-                                    onChange={(event) =>
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
                                         setPassword(event.target.value)
                                     }
                                     required
@@ -299,7 +300,7 @@ export default function InvitePage() {
                                 </label>
                                 <PasswordInput
                                     value={confirmPassword}
-                                    onChange={(event) =>
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
                                         setConfirmPassword(event.target.value)
                                     }
                                     required
