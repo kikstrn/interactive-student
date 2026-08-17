@@ -1,8 +1,8 @@
-import Link from "next/link";
 import KlikaoPageHeader from "@/components/brand/klikao-page-header";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import InstallKlikaoButton from "@/components/pwa/install-klikao-button";
+import PasswordInput from "@/components/ui/password-input";
 import {
     setTeacherPin,
     updatePassword,
@@ -153,11 +153,11 @@ export default async function SettingsPage({
                             <label className="mb-2 block text-sm font-bold text-slate-700">
                                 Nouveau mot de passe
                             </label>
-                            <input
+                            <PasswordInput
                                 name="password"
-                                type="password"
                                 minLength={8}
                                 required
+                                autoComplete="new-password"
                                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
                             />
                         </div>
@@ -166,11 +166,11 @@ export default async function SettingsPage({
                             <label className="mb-2 block text-sm font-bold text-slate-700">
                                 Confirmer
                             </label>
-                            <input
+                            <PasswordInput
                                 name="confirmPassword"
-                                type="password"
                                 minLength={8}
                                 required
+                                autoComplete="new-password"
                                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
                             />
                         </div>
@@ -217,13 +217,13 @@ export default async function SettingsPage({
                             <label className="mb-2 block text-sm font-bold text-slate-700">
                                 Nouveau PIN
                             </label>
-                            <input
+                            <PasswordInput
                                 name="pin"
-                                type="password"
                                 inputMode="numeric"
                                 pattern="[0-9]{4}"
                                 maxLength={4}
                                 required
+                                autoComplete="off"
                                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-2xl tracking-[0.45em] text-slate-900 outline-none focus:border-indigo-500"
                             />
                         </div>
@@ -232,13 +232,13 @@ export default async function SettingsPage({
                             <label className="mb-2 block text-sm font-bold text-slate-700">
                                 Confirmer le PIN
                             </label>
-                            <input
+                            <PasswordInput
                                 name="confirmPin"
-                                type="password"
                                 inputMode="numeric"
                                 pattern="[0-9]{4}"
                                 maxLength={4}
                                 required
+                                autoComplete="off"
                                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-2xl tracking-[0.45em] text-slate-900 outline-none focus:border-indigo-500"
                             />
                         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import PasswordInput from "@/components/ui/password-input"
 
 export default function InvitePage() {
     const router = useRouter();
@@ -280,20 +281,15 @@ export default function InvitePage() {
                                     Mot de passe
                                 </label>
 
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={8}
+                                <PasswordInput
                                     value={password}
                                     onChange={(event) =>
-                                        setPassword(
-                                            event.target
-                                                .value
-                                        )
+                                        setPassword(event.target.value)
                                     }
+                                    required
+                                    minLength={8}
                                     autoComplete="new-password"
                                     placeholder="8 caractères minimum"
-                                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
                                 />
                             </div>
 
@@ -301,21 +297,15 @@ export default function InvitePage() {
                                 <label className="mb-2 block text-sm font-bold text-slate-300">
                                     Confirmer le mot de passe
                                 </label>
-
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={8}
+                                <PasswordInput
                                     value={confirmPassword}
                                     onChange={(event) =>
-                                        setConfirmPassword(
-                                            event.target
-                                                .value
-                                        )
+                                        setConfirmPassword(event.target.value)
                                     }
+                                    required
+                                    minLength={8}
                                     autoComplete="new-password"
                                     placeholder="Confirmez votre mot de passe"
-                                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
                                 />
                             </div>
 

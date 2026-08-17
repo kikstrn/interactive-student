@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveNewPassword } from "./actions";
+import PasswordInput from "@/components/ui/password-input";
 
 type UpdatePasswordPageProps = {
     searchParams: Promise<{
@@ -52,9 +53,8 @@ export default async function UpdatePasswordPage({
                         <label className="mb-2 block text-sm font-bold text-slate-700">
                             Nouveau mot de passe
                         </label>
-                        <input
+                        <PasswordInput
                             name="password"
-                            type="password"
                             minLength={8}
                             required
                             autoComplete="new-password"
@@ -66,9 +66,8 @@ export default async function UpdatePasswordPage({
                         <label className="mb-2 block text-sm font-bold text-slate-700">
                             Confirmer le mot de passe
                         </label>
-                        <input
+                        <PasswordInput
                             name="confirmPassword"
-                            type="password"
                             minLength={8}
                             required
                             autoComplete="new-password"

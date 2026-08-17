@@ -1,6 +1,7 @@
 import Link from "next/link";
 import KlikaoLogo from "@/components/brand/klikao-logo";
 import { login } from "./actions";
+import PasswordInput from "@/components/ui/password-input"
 
 type LoginPageProps = {
     searchParams: Promise<{
@@ -81,12 +82,11 @@ export default async function LoginPage({
                                 Mot de passe oublié ?
                             </Link>
                         </div>
-                        <input
+                        <PasswordInput
                             name="password"
-                            type="password"
                             required
                             autoComplete="current-password"
-                            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-indigo-500"
+                            placeholder="••••••••"
                         />
                     </div>
 
