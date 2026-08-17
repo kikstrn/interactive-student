@@ -24,7 +24,7 @@ export default async function DashboardPage() {
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name")
+        .select("first_name, last_name, pin_configured")
         .eq("id", user.id)
         .single();
 
@@ -44,6 +44,8 @@ export default async function DashboardPage() {
             const count = classItem.students?.[0]?.count ?? 0;
             return total + count;
         }, 0) ?? 0;
+
+    const hasTeacherPin = profile?.pin_configured === true;
 
     return (
         <main className="min-h-screen bg-slate-50">
@@ -129,6 +131,35 @@ export default async function DashboardPage() {
                     </nav>
                 </div>
             </header>
+
+            {!hasTeacherPin && (
+                <div className="border-b border-amber-200 bg-amber-50">
+                    <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-xl">
+                                🔐
+                            </div>
+
+                            <div>
+                                <p className="font-black text-amber-900">
+                                    Configurez votre code PIN avant d&apos;utiliser le Mode Classe
+                                </p>
+
+                                <p className="mt-1 text-sm leading-6 text-amber-700">
+                                    Ce code à 4 chiffres est indispensable pour quitter le Mode Classe depuis un tableau interactif.
+                                </p>
+                            </div>
+                        </div>
+
+                        <Link
+                            href="/settings?setupPin=required"
+                            className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-black text-white transition hover:bg-amber-500"
+                        >
+                            Configurer mon PIN
+                        </Link>
+                    </div>
+                </div>
+            )}
 
             <div className="mx-auto max-w-7xl px-6 py-10">
                 <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">

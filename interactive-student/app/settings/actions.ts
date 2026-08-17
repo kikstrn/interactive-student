@@ -119,5 +119,22 @@ export async function setTeacherPin(formData: FormData) {
         redirect("/settings?pinError=save-error");
     }
 
+    const { error: flagError } = await supabase
+        .from("profiles")
+        .update({
+            pin_configured: true,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+    if (flagError) {
+        console.error("Impossible de marquer le PIN comme configuré :", flagError);
+        redirect("/settings?pinError=save-error");
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/settings");
+    revalidatePath("/classes");
+
     redirect("/settings?pinSaved=true");
 }

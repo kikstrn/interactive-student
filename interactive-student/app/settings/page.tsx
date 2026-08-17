@@ -17,6 +17,7 @@ type SettingsPageProps = {
         passwordError?: string;
         pinSaved?: string;
         pinError?: string;
+        setupPin?: string;
     }>;
 };
 
@@ -36,9 +37,11 @@ export default async function SettingsPage({
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, email")
+        .select("first_name, last_name, email, pin_configured")
         .eq("id", user.id)
         .single();
+
+    const hasTeacherPin = profile?.pin_configured === true;
 
     return (
         <main className="min-h-screen bg-slate-50">
@@ -50,6 +53,32 @@ export default async function SettingsPage({
             />
 
             <div className="mx-auto grid max-w-5xl gap-6 px-6 py-10">
+                {(params.setupPin === "required" || !hasTeacherPin) && (
+                    <section className="rounded-3xl border-2 border-amber-300 bg-amber-50 p-6 shadow-sm sm:p-8">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-2xl">
+                                🔐
+                            </div>
+
+                            <div>
+                                <h2 className="text-xl font-black text-amber-950">
+                                    Code PIN requis pour le Mode Classe
+                                </h2>
+
+                                <p className="mt-2 max-w-2xl text-sm leading-7 text-amber-800">
+                                    Avant de lancer le Mode Classe, choisissez un code PIN à 4 chiffres. Il sera demandé pour quitter l&apos;écran élève et revenir à votre espace enseignant.
+                                </p>
+
+                                <a
+                                    href="#class-mode-pin"
+                                    className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-black text-white transition hover:bg-amber-500"
+                                >
+                                    Configurer mon PIN maintenant ↓
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+                )}
                 <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
                     <div className="mb-6">
                         <h2 className="text-xl font-black text-slate-900">
@@ -186,7 +215,14 @@ export default async function SettingsPage({
                     </form>
                 </section>
 
-                <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+                <section
+                    id="class-mode-pin"
+                    className={`scroll-mt-28 rounded-3xl bg-white p-6 shadow-sm sm:p-8 ${
+                        params.setupPin === "required" || !hasTeacherPin
+                            ? "ring-2 ring-amber-300"
+                            : ""
+                    }`}
+                >
                     <div className="mb-6">
                         <h2 className="text-xl font-black text-slate-900">
                             🔢 Sécurité du Mode Classe
@@ -198,7 +234,7 @@ export default async function SettingsPage({
 
                     {params.pinSaved && (
                         <div className="mb-5 rounded-xl bg-teal-50 p-4 text-sm font-semibold text-teal-700">
-                            PIN enregistré.
+                            PIN enregistré. Vous pouvez maintenant utiliser le Mode Classe.
                         </div>
                     )}
 

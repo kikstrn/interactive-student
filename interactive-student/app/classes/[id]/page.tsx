@@ -26,6 +26,15 @@ export default async function ClassPage({
         redirect("/login");
     }
 
+    const { data: securityProfile } = await supabase
+        .from("profiles")
+        .select("pin_configured")
+        .eq("id", user.id)
+        .single();
+
+    const hasTeacherPin =
+        securityProfile?.pin_configured === true;
+
     const { data: classItem } = await supabase
         .from("classes")
         .select(`
@@ -73,6 +82,30 @@ export default async function ClassPage({
                     ▶ Mode Classe
                 </Link>
             </KlikaoPageHeader>
+
+            {!hasTeacherPin && (
+                <div className="border-b border-amber-200 bg-amber-50">
+                    <div className="mx-auto max-w-7xl px-6 py-4">
+                        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-white/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="font-black text-amber-900">
+                                    🔐 Code PIN requis pour le Mode Classe
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-amber-700">
+                                    Définissez d&apos;abord votre PIN à 4 chiffres. Sans ce code, vous ne pourriez pas quitter le Mode Classe en toute sécurité.
+                                </p>
+                            </div>
+
+                            <Link
+                                href="/settings?setupPin=required"
+                                className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-amber-500"
+                            >
+                                Configurer maintenant
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="mx-auto max-w-7xl px-6 py-10">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
