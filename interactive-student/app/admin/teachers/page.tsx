@@ -11,20 +11,7 @@ export default async function AdminTeachersPage() {
     ] = await Promise.all([
         admin
             .from("profiles")
-            .select(`
-                id,
-                email,
-                first_name,
-                last_name,
-                access_status,
-                is_admin,
-                primary_grade,
-                onboarding_completed,
-                subscription_status,
-                trial_started_at,
-                trial_ends_at,
-                created_at
-            `)
+            .select("*")
             .order("created_at", {
                 ascending: false,
             }),
@@ -34,6 +21,21 @@ export default async function AdminTeachersPage() {
             perPage: 1000,
         }),
     ]);
+
+    console.log(
+        "ADMIN TEACHERS PROFILES DATA:",
+        profilesResult.data
+    );
+    console.log(
+        "ADMIN TEACHERS PROFILES ERROR:",
+        profilesResult.error
+    );
+
+    if (profilesResult.error) {
+        throw new Error(
+            `Impossible de charger les profils professeurs : ${profilesResult.error.message}`
+        );
+    }
 
     const authById = new Map(
         (

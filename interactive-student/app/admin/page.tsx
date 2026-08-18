@@ -35,15 +35,7 @@ export default async function AdminPage() {
     ] = await Promise.all([
         admin
             .from("profiles")
-            .select(`
-                id,
-                email,
-                first_name,
-                last_name,
-                access_status,
-                is_admin,
-                created_at
-            `)
+            .select("*")
             .order("created_at", {
                 ascending: false,
             }),
@@ -77,6 +69,30 @@ export default async function AdminPage() {
             })
             .eq("status", "pending"),
     ]);
+
+    console.log(
+        "ADMIN PROFILES DATA:",
+        profilesResult.data
+    );
+    console.log(
+        "ADMIN PROFILES ERROR:",
+        profilesResult.error
+    );
+    console.log(
+        "ADMIN PROFILES COUNT:",
+        profilesResult.data?.length
+    );
+
+    if (profilesResult.error) {
+        console.error(
+            "Erreur chargement profiles admin:",
+            profilesResult.error
+        );
+
+        throw new Error(
+            `Impossible de charger les profils : ${profilesResult.error.message}`
+        );
+    }
 
     const accounts =
         (profilesResult.data ??
