@@ -10,8 +10,19 @@ import { redirect } from "next/navigation";
 import { logout } from "./actions";
 import CreateClassForm from "./create-class-form";
 import KlikaoLogo from "@/components/brand/klikao-logo";
+import ProductTour from "./product-tour";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+    searchParams: Promise<{
+        welcome?: string;
+        tour?: string;
+    }>;
+};
+
+export default async function DashboardPage({
+    searchParams,
+}: DashboardPageProps) {
+    const params = await searchParams;
     const supabase = await createClient();
 
     const {
@@ -24,9 +35,16 @@ export default async function DashboardPage() {
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, pin_configured")
+        .select("first_name, last_name, pin_configured, onboarding_completed, tutorial_completed, tutorial_skipped, tutorial_step")
         .eq("id", user.id)
         .single();
+
+    if (
+        profile?.onboarding_completed ===
+        false
+    ) {
+        redirect("/onboarding");
+    }
 
     const { data: classes } = await supabase
         .from("classes")
@@ -76,6 +94,7 @@ export default async function DashboardPage() {
                     >
                         <Link
                             href="/categories"
+                            data-tour="exercises"
                             title="Exercices"
                             className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md md:w-auto md:gap-2.5 md:px-4"
                         >
@@ -89,6 +108,7 @@ export default async function DashboardPage() {
 
                         <Link
                             href="/workshop"
+                            data-tour="workshop"
                             title="Workshop"
                             className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-100 bg-teal-50/70 text-teal-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-200 hover:bg-teal-100 hover:shadow-md lg:w-auto lg:gap-2.5 lg:px-4"
                         >
@@ -102,6 +122,7 @@ export default async function DashboardPage() {
 
                         <Link
                             href="/settings"
+                            data-tour="settings"
                             title="Paramètres"
                             className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 hover:shadow-md xl:w-auto xl:gap-2.5 xl:px-4"
                         >
@@ -132,6 +153,30 @@ export default async function DashboardPage() {
                 </div>
             </header>
 
+            {params.welcome === "1" && (
+                <div className="border-b border-teal-200 bg-teal-50">
+                    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+                        <p className="font-black text-teal-900">
+                            🎉 Votre espace KLIKAO est prêt !
+                        </p>
+                        <p className="mt-1 text-sm text-teal-700">
+                            Un petit tutoriel va maintenant vous présenter les fonctions principales.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <ProductTour
+                autoStart={
+                    profile?.tutorial_completed !== true &&
+                    profile?.tutorial_skipped !== true
+                }
+                forceStart={params.tour === "1"}
+                initialStep={
+                    profile?.tutorial_step ?? 0
+                }
+            />
+
             {!hasTeacherPin && (
                 <div className="border-b border-amber-200 bg-amber-50">
                     <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -161,7 +206,7 @@ export default async function DashboardPage() {
                 </div>
             )}
 
-            <div className="mx-auto max-w-7xl px-6 py-10">
+            <div data-tour="dashboard-home" className="mx-auto max-w-7xl px-6 py-10">
                 <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-900">
@@ -173,7 +218,9 @@ export default async function DashboardPage() {
                         </p>
                     </div>
 
-                    <CreateClassForm />
+                    <div data-tour="create-class">
+                        <CreateClassForm />
+                    </div>
                 </div>
 
                 <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -208,7 +255,7 @@ export default async function DashboardPage() {
                     </div>
                 </div>
 
-                <section className="mt-12">
+                <section data-tour="class-list" className="mt-12">
                     <div className="mb-6">
                         <h3 className="text-2xl font-bold text-slate-900">
                             Mes classes

@@ -45,3 +45,80 @@ export async function createClass(formData: FormData) {
 
     revalidatePath("/dashboard");
 }
+
+export async function updateTutorialProgress(
+    step: number
+) {
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return;
+    }
+
+    await supabase
+        .from("profiles")
+        .update({
+            tutorial_step: Math.max(
+                0,
+                Math.min(step, 20)
+            ),
+            updated_at:
+                new Date().toISOString(),
+        })
+        .eq("id", user.id);
+}
+
+export async function completeTutorial() {
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return;
+    }
+
+    await supabase
+        .from("profiles")
+        .update({
+            tutorial_completed: true,
+            tutorial_skipped: false,
+            tutorial_step: 0,
+            updated_at:
+                new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+    revalidatePath("/dashboard");
+    revalidatePath("/settings");
+}
+
+export async function skipTutorial() {
+    const supabase = await createClient();
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return;
+    }
+
+    await supabase
+        .from("profiles")
+        .update({
+            tutorial_skipped: true,
+            tutorial_step: 0,
+            updated_at:
+                new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+    revalidatePath("/dashboard");
+    revalidatePath("/settings");
+}

@@ -290,6 +290,28 @@ export default async function SettingsPage({
                     </form>
                 </section>
 
+
+                <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">
+                                🎓 Aide & découverte
+                            </h2>
+
+                            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500">
+                                Relancez à tout moment le tutoriel interactif pour revoir les principales fonctions de KLIKAO.
+                            </p>
+                        </div>
+
+                        <a
+                            href="/dashboard?tour=1"
+                            className="flex min-h-12 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-indigo-50 px-5 font-black text-indigo-700 transition hover:bg-indigo-100"
+                        >
+                            ▶ Revoir le tutoriel
+                        </a>
+                    </div>
+                </section>
+
                 <section className="rounded-3xl bg-white p-6 shadow-sm sm:p-8">
                     <div className="mb-6">
                         <h2 className="text-xl font-black text-slate-900">
