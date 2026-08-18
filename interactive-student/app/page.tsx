@@ -106,54 +106,136 @@ const faq = [
 export default function HomePage() {
     return (
         <main className="min-h-screen overflow-hidden bg-slate-50 text-slate-900">
-            <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-                <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-                    <KlikaoLogo
-                        href="/"
-                        priority
-                        className="h-10 sm:h-12"
-                    />
+            <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+                <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between gap-3">
+                        <KlikaoLogo
+                            href="/"
+                            priority
+                            className="h-9 shrink-0 sm:h-11"
+                        />
 
-                    <nav className="hidden items-center gap-7 text-sm font-bold text-slate-600 lg:flex">
-                        <a
-                            href="#fonctionnalites"
-                            className="transition hover:text-indigo-600"
-                        >
-                            Fonctionnalités
-                        </a>
-                        <a
-                            href="#mode-classe"
-                            className="transition hover:text-indigo-600"
-                        >
-                            Mode Classe
-                        </a>
-                        <a
-                            href="#primaire"
-                            className="transition hover:text-indigo-600"
-                        >
-                            Du CP au CM2
-                        </a>
-                        <a
-                            href="#faq"
-                            className="transition hover:text-indigo-600"
-                        >
-                            FAQ
-                        </a>
-                    </nav>
+                        <nav className="hidden items-center gap-7 text-sm font-bold text-slate-600 lg:flex">
+                            <a
+                                href="#fonctionnalites"
+                                className="cursor-pointer transition hover:text-indigo-600"
+                            >
+                                Fonctionnalités
+                            </a>
+                            <a
+                                href="#mode-classe"
+                                className="cursor-pointer transition hover:text-indigo-600"
+                            >
+                                Mode Classe
+                            </a>
+                            <a
+                                href="#primaire"
+                                className="cursor-pointer transition hover:text-indigo-600"
+                            >
+                                Du CP au CM2
+                            </a>
+                            <a
+                                href="#faq"
+                                className="cursor-pointer transition hover:text-indigo-600"
+                            >
+                                FAQ
+                            </a>
+                        </nav>
 
-                    <div className="flex items-center gap-2">
+                        <div className="hidden items-center gap-2 sm:flex">
+                            <Link
+                                href="/login"
+                                className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                            >
+                                Se connecter
+                            </Link>
+
+                            <Link
+                                href="/register"
+                                className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-500"
+                            >
+                                Demander un accès
+                            </Link>
+                        </div>
+
+                        <details className="group relative sm:hidden">
+                            <summary
+                                aria-label="Ouvrir le menu"
+                                className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-xl border border-slate-200 bg-white text-xl font-black text-slate-700 shadow-sm transition hover:bg-slate-50 [&::-webkit-details-marker]:hidden"
+                            >
+                                <span className="group-open:hidden">☰</span>
+                                <span className="hidden group-open:inline">✕</span>
+                            </summary>
+
+                            <div className="absolute right-0 top-[calc(100%+0.65rem)] w-[min(88vw,340px)] overflow-hidden rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl shadow-slate-950/15">
+                                <div className="space-y-1">
+                                    <a
+                                        href="#fonctionnalites"
+                                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-4 font-black text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        <span className="text-lg">✨</span>
+                                        Fonctionnalités
+                                    </a>
+
+                                    <a
+                                        href="#mode-classe"
+                                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-4 font-black text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        <span className="text-lg">🎯</span>
+                                        Mode Classe
+                                    </a>
+
+                                    <a
+                                        href="#primaire"
+                                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-4 font-black text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        <span className="text-lg">🎒</span>
+                                        Du CP au CM2
+                                    </a>
+
+                                    <a
+                                        href="#faq"
+                                        className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl px-4 font-black text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        <span className="text-lg">❓</span>
+                                        FAQ
+                                    </a>
+                                </div>
+
+                                <div className="my-3 h-px bg-slate-100" />
+
+                                <div className="grid gap-2">
+                                    <Link
+                                        href="/login"
+                                        className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                                    >
+                                        🔐 Se connecter
+                                    </Link>
+
+                                    <Link
+                                        href="/register"
+                                        className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 px-4 font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-500"
+                                    >
+                                        ✉️ Demander un accès
+                                    </Link>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
                         <Link
                             href="/login"
-                            className="hidden min-h-11 cursor-pointer items-center justify-center rounded-xl px-4 text-sm font-black text-slate-600 transition hover:bg-slate-100 sm:flex"
+                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
                         >
-                            Se connecter
+                            🔐 Se connecter
                         </Link>
 
                         <Link
                             href="/register"
-                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-black text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-500"
+                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-500"
                         >
-                            Demander un accès
+                            ✉️ Demander un accès
                         </Link>
                     </div>
                 </div>
