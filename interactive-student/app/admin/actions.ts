@@ -178,14 +178,31 @@ export async function updateTeacherAccess(
         };
     }
 
+    const {
+        data: authUserResult,
+    } =
+        await admin.auth.admin.getUserById(
+            userId
+        );
+
+    const authEmail =
+        authUserResult.user?.email ??
+        null;
+
     const { error } = await admin
         .from("profiles")
-        .update({
-            access_status: status,
-            updated_at:
-                new Date().toISOString(),
-        })
-        .eq("id", userId);
+        .upsert(
+            {
+                id: userId,
+                email: authEmail,
+                access_status: status,
+                updated_at:
+                    new Date().toISOString(),
+            },
+            {
+                onConflict: "id",
+            }
+        );
 
     if (error) {
         console.error(

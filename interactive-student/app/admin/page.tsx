@@ -1,16 +1,24 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+type ProfileRow = {
+    id: string;
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    access_status: string | null;
+    is_admin: boolean | null;
+    created_at: string | null;
+};
+
 function countByStatus(
-    profiles: Array<{
-        access_status?: string | null;
-    }>,
+    profiles: ProfileRow[],
     status: string
 ) {
     return profiles.filter(
         (profile) =>
-            profile.access_status ===
-            status
+            (profile.access_status ??
+                "active") === status
     ).length;
 }
 
@@ -39,24 +47,28 @@ export default async function AdminPage() {
             .order("created_at", {
                 ascending: false,
             }),
+
         admin
             .from("classes")
             .select("id", {
                 count: "exact",
                 head: true,
             }),
+
         admin
             .from("students")
             .select("id", {
                 count: "exact",
                 head: true,
             }),
+
         admin
             .from("exercises")
             .select("id", {
                 count: "exact",
                 head: true,
             }),
+
         admin
             .from("access_requests")
             .select("id", {
@@ -66,14 +78,19 @@ export default async function AdminPage() {
             .eq("status", "pending"),
     ]);
 
-    const profiles =
-        profilesResult.data ?? [];
+    const accounts =
+        (profilesResult.data ??
+            []) as ProfileRow[];
 
-    const teachers =
-        profiles.filter(
-            (profile) =>
-                profile.is_admin !== true
-        );
+    const admins = accounts.filter(
+        (profile) =>
+            profile.is_admin === true
+    );
+
+    const teachers = accounts.filter(
+        (profile) =>
+            profile.is_admin !== true
+    );
 
     const activeTeachers =
         countByStatus(
@@ -93,8 +110,8 @@ export default async function AdminPage() {
             "suspended"
         );
 
-    const recentTeachers =
-        teachers.slice(0, 6);
+    const recentAccounts =
+        accounts.slice(0, 8);
 
     return (
         <main className="mx-auto max-w-7xl px-6 py-10">
@@ -125,12 +142,18 @@ export default async function AdminPage() {
                         href="/admin/teachers"
                         className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 px-5 font-black text-white transition hover:bg-indigo-500"
                     >
-                        + Inviter un professeur
+                        👩‍🏫 Gérer les professeurs
                     </Link>
                 </div>
             </div>
 
-            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                    icon="👥"
+                    label="Comptes au total"
+                    value={`${accounts.length}`}
+                />
+
                 <StatCard
                     icon="👩‍🏫"
                     label="Professeurs"
@@ -138,8 +161,25 @@ export default async function AdminPage() {
                 />
 
                 <StatCard
+                    icon="🛡️"
+                    label="Administrateurs"
+                    value={`${admins.length}`}
+                />
+
+                <StatCard
+                    icon="📥"
+                    label="Demandes en attente"
+                    value={`${
+                        accessRequestsResult.count ??
+                        0
+                    }`}
+                />
+            </section>
+
+            <section className="mt-4 grid gap-4 sm:grid-cols-3">
+                <StatCard
                     icon="✅"
-                    label="Actifs"
+                    label="Professeurs actifs"
                     value={`${activeTeachers}`}
                 />
 
@@ -153,12 +193,6 @@ export default async function AdminPage() {
                     icon="⛔"
                     label="Suspendus"
                     value={`${suspendedTeachers}`}
-                />
-
-                <StatCard
-                    icon="📥"
-                    label="Demandes en attente"
-                    value={`${accessRequestsResult.count ?? 0}`}
                 />
             </section>
 
@@ -195,11 +229,11 @@ export default async function AdminPage() {
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <h2 className="text-xl font-black text-slate-900">
-                            Derniers professeurs
+                            Comptes KLIKAO
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Comptes créés récemment.
+                            Tous les comptes présents dans public.profiles.
                         </p>
                     </div>
 
@@ -207,43 +241,52 @@ export default async function AdminPage() {
                         href="/admin/teachers"
                         className="cursor-pointer text-sm font-black text-indigo-600 hover:text-indigo-500"
                     >
-                        Voir tout →
+                        Gérer →
                     </Link>
                 </div>
 
                 <div className="mt-6 divide-y divide-slate-100">
-                    {recentTeachers.length ===
+                    {recentAccounts.length ===
                     0 ? (
                         <p className="py-8 text-center text-slate-400">
-                            Aucun professeur pour le moment.
+                            Aucun compte pour le moment.
                         </p>
                     ) : (
-                        recentTeachers.map(
-                            (teacher) => (
+                        recentAccounts.map(
+                            (account) => (
                                 <div
                                     key={
-                                        teacher.id
+                                        account.id
                                     }
                                     className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
                                 >
                                     <div>
-                                        <p className="font-black text-slate-900">
-                                            {teacher.first_name ||
-                                                teacher.last_name
-                                                ? `${teacher.first_name ?? ""} ${teacher.last_name ?? ""}`.trim()
-                                                : "Compte invité"}
-                                        </p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="font-black text-slate-900">
+                                                {account.first_name ||
+                                                account.last_name
+                                                    ? `${account.first_name ?? ""} ${account.last_name ?? ""}`.trim()
+                                                    : "Compte KLIKAO"}
+                                            </p>
 
-                                        <p className="text-sm text-slate-500">
-                                            {teacher.email ??
+                                            {account.is_admin ===
+                                                true && (
+                                                <span className="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-black text-violet-700">
+                                                    🛡️ Admin
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            {account.email ??
                                                 "Email indisponible"}
                                         </p>
                                     </div>
 
                                     <StatusBadge
                                         status={
-                                            teacher.access_status ??
-                                            "invited"
+                                            account.access_status ??
+                                            "active"
                                         }
                                     />
                                 </div>
@@ -315,7 +358,7 @@ function StatusBadge({
         <span
             className={`w-fit rounded-full px-3 py-1.5 text-xs font-black ${
                 styles[status] ??
-                styles.invited
+                styles.active
             }`}
         >
             {labels[status] ?? status}

@@ -4,6 +4,7 @@ import {
     Settings,
     LogOut,
     Globe2,
+    ShieldCheck,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -35,7 +36,7 @@ export default async function DashboardPage({
 
     const { data: profile } = await supabase
         .from("profiles")
-        .select("first_name, last_name, pin_configured, onboarding_completed, tutorial_completed, tutorial_skipped, tutorial_step")
+        .select("first_name, last_name, pin_configured, onboarding_completed, tutorial_completed, tutorial_skipped, tutorial_step, is_admin")
         .eq("id", user.id)
         .single();
 
@@ -119,6 +120,22 @@ export default async function DashboardPage({
                                 Workshop
                             </span>
                         </Link>
+
+                        {profile?.is_admin === true && (
+                            <Link
+                                href="/admin"
+                                title="Administration"
+                                className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 text-violet-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-100 hover:shadow-md lg:w-auto lg:gap-2.5 lg:px-4"
+                            >
+                                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/80 text-violet-600">
+                                    <ShieldCheck size={17} />
+                                </span>
+
+                                <span className="hidden text-sm font-bold lg:inline">
+                                    Admin
+                                </span>
+                            </Link>
+                        )}
 
                         <Link
                             href="/settings"

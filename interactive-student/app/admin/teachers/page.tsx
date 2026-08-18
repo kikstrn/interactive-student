@@ -28,24 +28,27 @@ export default async function AdminTeachersPage() {
             .order("created_at", {
                 ascending: false,
             }),
+
         admin.auth.admin.listUsers({
             page: 1,
             perPage: 1000,
         }),
     ]);
 
-    const authUsers =
-        usersResult.data?.users ?? [];
-
     const authById = new Map(
-        authUsers.map((user) => [
+        (
+            usersResult.data?.users ??
+            []
+        ).map((user) => [
             user.id,
             user,
         ])
     );
 
     const teachers =
-        (profilesResult.data ?? [])
+        (
+            profilesResult.data ?? []
+        )
             .filter(
                 (profile) =>
                     profile.is_admin !==
@@ -69,7 +72,7 @@ export default async function AdminTeachersPage() {
                         profile.last_name,
                     access_status:
                         profile.access_status ??
-                        "invited",
+                        "active",
                     created_at:
                         profile.created_at,
                     last_sign_in_at:
