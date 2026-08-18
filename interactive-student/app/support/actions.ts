@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushToAdmins } from "@/lib/push/admin-push";
 
 type CreateTicketInput = {
     type:
@@ -367,7 +368,18 @@ export async function createSupportTicket(
         };
     }
 
-    // L'envoi d'une notification ne bloque jamais la création du ticket.
+    // Les notifications ne bloquent jamais la création du ticket.
+    void sendPushToAdmins({
+        title:
+            `🎫 Nouveau ticket #${ticket.ticket_number}`,
+        body:
+            `${teacherName || teacherEmail} — ${subject}`,
+        url:
+            "/admin/tickets",
+        ticketNumber:
+            ticket.ticket_number,
+    });
+
     void notifyAdminsByEmail({
         ticketNumber:
             ticket.ticket_number,

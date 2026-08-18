@@ -33,6 +33,7 @@ export default async function AdminPage() {
         exercisesResult,
         accessRequestsResult,
         supportTicketsResult,
+        newTicketsResult,
     ] = await Promise.all([
         admin
             .from("profiles")
@@ -80,6 +81,14 @@ export default async function AdminPage() {
                 "new",
                 "in_progress",
             ]),
+
+        admin
+            .from("support_tickets")
+            .select("id", {
+                count: "exact",
+                head: true,
+            })
+            .eq("status", "new"),
     ]);
 
     console.log(
@@ -142,7 +151,7 @@ export default async function AdminPage() {
         accounts.slice(0, 8);
 
     return (
-        <main className="mx-auto max-w-7xl px-6 py-10">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-sm font-black uppercase tracking-[0.14em] text-indigo-500">
@@ -158,7 +167,7 @@ export default async function AdminPage() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
                     <Link
                         href="/admin/requests"
                         className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-indigo-200 bg-indigo-50 px-5 font-black text-indigo-700 transition hover:bg-indigo-100"
@@ -182,7 +191,35 @@ export default async function AdminPage() {
                 </div>
             </div>
 
-            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {(newTicketsResult.count ?? 0) > 0 && (
+                <Link
+                    href="/admin/tickets"
+                    className="mt-6 flex cursor-pointer items-center gap-4 rounded-3xl border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5"
+                >
+                    <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
+                        🎫
+                        <span className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full bg-red-500 ring-4 ring-red-100" />
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                        <p className="font-black text-red-900">
+                            {newTicketsResult.count} nouveau
+                            {(newTicketsResult.count ?? 0) > 1 ? "x" : ""} ticket
+                            {(newTicketsResult.count ?? 0) > 1 ? "s" : ""}
+                        </p>
+
+                        <p className="mt-1 text-sm text-red-700">
+                            Un professeur vient de signaler un problème ou une suggestion.
+                        </p>
+                    </div>
+
+                    <span className="hidden font-black text-red-600 sm:block">
+                        Voir →
+                    </span>
+                </Link>
+            )}
+
+            <section className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 xl:grid-cols-5">
                 <StatCard
                     icon="👥"
                     label="Comptes au total"
@@ -220,7 +257,7 @@ export default async function AdminPage() {
                 />
             </section>
 
-            <section className="mt-4 grid gap-4 sm:grid-cols-3">
+            <section className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:grid-cols-3 sm:gap-4">
                 <StatCard
                     icon="✅"
                     label="Professeurs actifs"
@@ -240,7 +277,7 @@ export default async function AdminPage() {
                 />
             </section>
 
-            <section className="mt-4 grid gap-4 sm:grid-cols-3">
+            <section className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:grid-cols-3 sm:gap-4">
                 <StatCard
                     icon="🏫"
                     label="Classes"
@@ -353,8 +390,8 @@ function StatCard({
     value: string;
 }) {
     return (
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-            <div className="text-3xl">
+        <div className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="text-2xl sm:text-3xl">
                 {icon}
             </div>
 
@@ -362,7 +399,7 @@ function StatCard({
                 {label}
             </p>
 
-            <p className="mt-1 text-3xl font-black text-slate-900">
+            <p className="mt-1 text-2xl font-black text-slate-900 sm:text-3xl">
                 {value}
             </p>
         </div>

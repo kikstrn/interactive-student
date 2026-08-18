@@ -147,7 +147,7 @@ export default function TicketsManager({
 
     return (
         <div>
-            <section className="rounded-3xl bg-white p-5 shadow-sm sm:p-7">
+            <section className="rounded-2xl bg-white p-4 shadow-sm sm:rounded-3xl sm:p-7">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <h2 className="text-xl font-black text-slate-900">
@@ -164,7 +164,7 @@ export default function TicketsManager({
                         </p>
                     </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row">
+                    <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-row sm:gap-3">
                         <select
                             value={
                                 statusFilter
@@ -246,10 +246,21 @@ export default function TicketsManager({
                                                     : ticket.id
                                             )
                                         }
-                                        className="flex w-full cursor-pointer flex-col gap-4 p-5 text-left transition hover:bg-slate-50 sm:p-6 lg:flex-row lg:items-center lg:justify-between"
+                                        className={`flex w-full cursor-pointer flex-col gap-3 p-4 text-left transition sm:p-6 lg:flex-row lg:items-center lg:justify-between ${
+                                        ticket.status === "new"
+                                            ? "bg-red-50/50 hover:bg-red-50"
+                                            : "hover:bg-slate-50"
+                                    }`}
                                     >
                                         <div className="min-w-0 flex-1">
                                             <div className="flex flex-wrap items-center gap-2">
+                                                {ticket.status === "new" && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-1 text-xs font-black text-white shadow-sm">
+                                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                                                        Nouveau
+                                                    </span>
+                                                )}
+
                                                 <TypeBadge
                                                     type={
                                                         ticket.ticket_type
@@ -310,8 +321,8 @@ export default function TicketsManager({
                                     </button>
 
                                     {expanded && (
-                                        <div className="border-t border-slate-200 bg-slate-50/60 p-5 sm:p-6">
-                                            <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+                                        <div className="border-t border-slate-200 bg-slate-50/60 p-4 sm:p-6">
+                                            <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_280px]">
                                                 <div>
                                                     <h4 className="text-sm font-black uppercase tracking-wide text-slate-400">
                                                         Description
