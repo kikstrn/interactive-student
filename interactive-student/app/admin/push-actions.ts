@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushToAdminUser } from "@/lib/push/admin-push";
 
 type PushSubscriptionInput = {
     endpoint: string;
@@ -134,3 +135,5 @@ export async function deleteAdminPushSubscription(
         success: true,
     };
 }
+
+export async function testAdminPushNotification(){const user=await requireAdmin();try{const result=await sendPushToAdminUser(user.id,{title:"🔔 Test KLIKAO",body:"Les notifications push fonctionnent sur cet appareil.",url:"/admin",tag:`klikao-test-${Date.now()}`});if(result.total===0)return{success:false,message:"Aucun appareil abonné pour ce compte admin."};if(result.success===0)return{success:false,message:`Envoi échoué (${result.failed}/${result.total}). Consulte les logs Cloudflare KLIKAO PUSH FAILED.`};return{success:true,message:`Notification envoyée (${result.success}/${result.total} appareil${result.total>1?"s":""}).`}}catch(error){console.error("[KLIKAO PUSH TEST FAILED]",error);return{success:false,message:error instanceof Error&&error.message==="VAPID_CONFIG_MISSING"?"Configuration VAPID incomplète sur le serveur.":"Erreur pendant le test push. Consulte les logs Cloudflare."}}}
