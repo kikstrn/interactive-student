@@ -79,3 +79,113 @@ self.addEventListener("fetch", (event) => {
         })
     );
 });
+
+
+/* =========================================================
+ * KLIKAO Web Push
+ * IMPORTANT: this lives in the SAME root service worker as
+ * the PWA cache. Do not register another worker on scope "/".
+ * ========================================================= */
+
+self.addEventListener("push", (event) => {
+    let payload = {
+        title: "KLIKAO",
+        body: "Nouvelle notification",
+        url: "/admin",
+        tag: "klikao-admin",
+    };
+
+    try {
+        if (event.data) {
+            payload = {
+                ...payload,
+                ...event.data.json(),
+            };
+        }
+    } catch (error) {
+        console.error(
+            "[KLIKAO SW PUSH PAYLOAD ERROR]",
+            error
+        );
+    }
+
+    const tag =
+        payload.tag ||
+        (payload.ticketNumber
+            ? `klikao-ticket-${payload.ticketNumber}`
+            : "klikao-admin");
+
+    event.waitUntil(
+        self.registration.showNotification(
+            payload.title,
+            {
+                body: payload.body,
+                icon: "/icons/icon-192x192.png",
+                badge: "/icons/icon-96x96.png",
+                tag,
+                renotify: true,
+                data: {
+                    url:
+                        payload.url ||
+                        "/admin",
+                },
+            }
+        )
+    );
+});
+
+self.addEventListener(
+    "notificationclick",
+    (event) => {
+        event.notification.close();
+
+        const targetUrl =
+            event.notification.data?.url ||
+            "/admin";
+
+        event.waitUntil(
+            self.clients
+                .matchAll({
+                    type: "window",
+                    includeUncontrolled:
+                        true,
+                })
+                .then(
+                    async (
+                        clientList
+                    ) => {
+                        for (const client of clientList) {
+                            try {
+                                if (
+                                    "navigate" in
+                                    client
+                                ) {
+                                    await client.navigate(
+                                        targetUrl
+                                    );
+                                }
+
+                                if (
+                                    "focus" in
+                                    client
+                                ) {
+                                    return client.focus();
+                                }
+                            } catch {
+                                // Continue and try another client/openWindow.
+                            }
+                        }
+
+                        if (
+                            self.clients
+                                .openWindow
+                        ) {
+                            return self.clients.openWindow(
+                                targetUrl
+                            );
+                        }
+                    }
+                )
+        );
+    }
+);
