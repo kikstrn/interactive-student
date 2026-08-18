@@ -7,6 +7,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { recordStudentAnswer } from "./result-actions";
 
 type ExerciseItem = {
     id?: string;
@@ -34,6 +35,11 @@ type ExercisePlayerProps = {
     inputType: "text" | "numeric";
     classId: string;
     studentId: string;
+    adaptiveHint?: {
+        active: boolean;
+        categoryName: string;
+        successRate: number;
+    } | null;
 };
 
 function normalizeAnswer(value: string) {
@@ -51,6 +57,7 @@ export default function ExercisePlayer({
     inputType,
     classId,
     studentId,
+    adaptiveHint,
 }: ExercisePlayerProps) {
     const router = useRouter();
 
@@ -98,6 +105,10 @@ export default function ExercisePlayer({
         useState(true);
     const [speaking, setSpeaking] =
         useState(false);
+    const [savingResult, setSavingResult] =
+        useState(false);
+    const [resultSaved, setResultSaved] =
+        useState(false);
 
     const currentItem =
         items[itemIndex] ?? items[0];
@@ -141,6 +152,57 @@ export default function ExercisePlayer({
         setValidated(false);
         setIsCorrect(false);
         setSpeaking(false);
+        setSavingResult(false);
+        setResultSaved(false);
+    }
+
+    async function saveResult(
+        correct: boolean,
+        answerGiven: string | null
+    ) {
+        if (!currentItem || resultSaved) {
+            return;
+        }
+
+        setSavingResult(true);
+
+        const result =
+            await recordStudentAnswer({
+                classId,
+                studentId,
+                exerciseId: exercise.id,
+                exerciseItemId:
+                    currentItem.id ?? null,
+                itemPosition:
+                    currentItem.position ??
+                    itemIndex,
+                exerciseTitle:
+                    exercise.title,
+                exerciseType:
+                    exercise.exercise_type,
+                categoryName:
+                    exercise.category_name,
+                categoryIcon:
+                    exercise.category_icon,
+                prompt:
+                    currentItem.prompt,
+                studentAnswer:
+                    answerGiven,
+                expectedAnswer:
+                    currentItem.answer,
+                isCorrect: correct,
+            });
+
+        if (result.success) {
+            setResultSaved(true);
+        } else {
+            console.error(
+                "Impossible d'enregistrer le résultat :",
+                result.reason
+            );
+        }
+
+        setSavingResult(false);
     }
 
     function addNumber(value: string) {
@@ -162,8 +224,10 @@ export default function ExercisePlayer({
         setStudentAnswer("");
     }
 
-    function validateStudentAnswer() {
-        if (!currentItem?.answer) return;
+    async function validateStudentAnswer() {
+        if (!currentItem?.answer || savingResult) {
+            return;
+        }
 
         const answerToCheck = isQcm
             ? selectedChoice ?? ""
@@ -171,29 +235,44 @@ export default function ExercisePlayer({
 
         if (!answerToCheck.trim()) return;
 
-        setIsCorrect(
+        const correct =
             normalizeAnswer(answerToCheck) ===
-                normalizeAnswer(
-                    currentItem.answer
-                )
-        );
-        setValidated(true);
-    }
+            normalizeAnswer(
+                currentItem.answer
+            );
 
-    function validateByTeacher(
-        correct: boolean
-    ) {
         setIsCorrect(correct);
         setValidated(true);
+
+        await saveResult(
+            correct,
+            answerToCheck
+        );
+    }
+
+    async function validateByTeacher(
+        correct: boolean
+    ) {
+        if (savingResult) return;
+
+        setIsCorrect(correct);
+        setValidated(true);
+
+        await saveResult(
+            correct,
+            null
+        );
     }
 
     function nextItem() {
-        if (!hasNextItem) return;
+        if (!hasNextItem || savingResult) return;
         setItemIndex((current) => current + 1);
         resetCurrentAnswer();
     }
 
     function nextExercise() {
+        if (savingResult) return;
+
         router.push(
             `/classes/${classId}/play/${studentId}?new=${Date.now()}`
         );
@@ -313,6 +392,15 @@ export default function ExercisePlayer({
                     <span className="rounded-full bg-violet-50 px-5 py-3 text-base font-black text-violet-700 sm:text-lg">
                         {itemIndex + 1} /{" "}
                         {items.length}
+                    </span>
+                )}
+
+                {adaptiveHint?.active && (
+                    <span
+                        title={`KLIKAO favorise actuellement ${adaptiveHint.categoryName} car le taux de réussite récent est de ${adaptiveHint.successRate} %.`}
+                        className="rounded-full bg-amber-50 px-5 py-3 text-base font-black text-amber-700 sm:text-lg"
+                    >
+                        🧠 Entraînement adapté
                     </span>
                 )}
             </div>
@@ -457,6 +545,12 @@ export default function ExercisePlayer({
                     </div>
                 )}
 
+            {savingResult && (
+                <p className="mt-5 text-center text-sm font-bold text-indigo-500">
+                    Enregistrement de la progression...
+                </p>
+            )}
+
             {validated && (
                 <div
                     className={`mt-8 rounded-3xl p-8 text-center sm:p-10 ${
@@ -505,6 +599,7 @@ export default function ExercisePlayer({
                 <button
                     type="button"
                     onClick={nextItem}
+                    disabled={savingResult}
                     className="mt-8 flex min-h-24 w-full cursor-pointer items-center justify-center rounded-3xl bg-violet-600 px-8 text-center text-xl font-black text-white transition hover:bg-violet-500 active:scale-95 sm:text-2xl"
                 >
                     Question suivante →
@@ -516,6 +611,7 @@ export default function ExercisePlayer({
                     <button
                         type="button"
                         onClick={nextExercise}
+                        disabled={savingResult}
                         className="flex min-h-24 cursor-pointer items-center justify-center rounded-3xl bg-amber-100 px-8 text-center text-xl font-black text-amber-900 transition hover:bg-amber-200 active:scale-95 sm:text-2xl"
                     >
                         🎲 Nouvel exercice

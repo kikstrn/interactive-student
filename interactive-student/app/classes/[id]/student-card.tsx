@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AvatarPicker from "@/components/students/avatar-picker";
 import {
     deleteStudent,
@@ -99,6 +100,13 @@ export default function StudentCard({
                 </div>
 
                 <div className="mt-5 grid gap-2">
+                    <Link
+                        href={`/classes/${classId}/students/${student.id}/progress`}
+                        className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-teal-100 bg-teal-50 px-4 py-2.5 text-sm font-black text-teal-700 transition hover:bg-teal-100"
+                    >
+                        📊 Voir la progression
+                    </Link>
+
                     <button
                         type="button"
                         onClick={() =>

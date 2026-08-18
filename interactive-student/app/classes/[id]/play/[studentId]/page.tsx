@@ -90,14 +90,183 @@ export default async function StudentExercisePage({
         .eq("active", true)
         .not("subject_id", "is", null);
 
-    const exercise =
+    /*
+     * Sélection adaptative KLIKAO
+     * --------------------------
+     * 1. On regarde les résultats récents de l'élève.
+     * 2. Une matière avec au moins 3 réponses et moins de 60 % de réussite
+     *    devient une priorité.
+     * 3. On favorise les exercices de cette matière sans supprimer
+     *    complètement la variété.
+     * 4. On évite, si possible, de reproposer immédiatement le même exercice.
+     */
+
+    const { data: recentResults } =
+        await supabase
+            .from("student_exercise_results")
+            .select(`
+                exercise_id,
+                category_name,
+                is_correct,
+                created_at
+            `)
+            .eq("teacher_id", user.id)
+            .eq("student_id", student.id)
+            .eq("class_id", id)
+            .order("created_at", {
+                ascending: false,
+            })
+            .limit(40);
+
+    const categoryPerformance = new Map<
+        string,
+        {
+            total: number;
+            correct: number;
+        }
+    >();
+
+    for (const result of recentResults ?? []) {
+        const categoryName =
+            result.category_name ?? "";
+
+        if (!categoryName) {
+            continue;
+        }
+
+        const current =
+            categoryPerformance.get(
+                categoryName
+            ) ?? {
+                total: 0,
+                correct: 0,
+            };
+
+        current.total += 1;
+
+        if (result.is_correct) {
+            current.correct += 1;
+        }
+
+        categoryPerformance.set(
+            categoryName,
+            current
+        );
+    }
+
+    const priorityCategories =
+        Array.from(
+            categoryPerformance.entries()
+        )
+            .map(([name, stat]) => ({
+                name,
+                total: stat.total,
+                rate:
+                    stat.total > 0
+                        ? Math.round(
+                            (stat.correct /
+                                stat.total) *
+                            100
+                        )
+                        : 100,
+            }))
+            .filter(
+                (category) =>
+                    category.total >= 3 &&
+                    category.rate < 60
+            )
+            .sort(
+                (a, b) =>
+                    a.rate - b.rate
+            );
+
+    const lastExerciseId =
+        recentResults?.[0]?.exercise_id ??
+        null;
+
+    type ExerciseCandidate = NonNullable<typeof exercises>[number];
+
+    function exerciseSubjectName(
+        candidate: ExerciseCandidate
+    ) {
+        const candidateSubject =
+            Array.isArray(candidate.subjects)
+                ? candidate.subjects[0]
+                : candidate.subjects;
+
+        return candidateSubject?.name ?? "";
+    }
+
+    let exercise =
         exercises && exercises.length > 0
             ? exercises[
-                  Math.floor(
-                      Math.random() *
-                          exercises.length
-                  )
-              ]
+            Math.floor(
+                Math.random() *
+                exercises.length
+            )
+            ]
+            : null;
+
+    if (exercises && exercises.length > 0) {
+        const priorityNames = new Set(
+            priorityCategories.map(
+                (category) => category.name
+            )
+        );
+
+        const priorityExercises =
+            exercises.filter((candidate) =>
+                priorityNames.has(
+                    exerciseSubjectName(
+                        candidate
+                    )
+                )
+            );
+
+        /*
+         * 75 % de chance de travailler une difficulté détectée,
+         * 25 % de chance de conserver de la variété.
+         */
+        const shouldUsePriority =
+            priorityExercises.length > 0 &&
+            Math.random() < 0.75;
+
+        const candidatePool =
+            shouldUsePriority
+                ? priorityExercises
+                : exercises;
+
+        const withoutImmediateRepeat =
+            candidatePool.filter(
+                (candidate) =>
+                    candidate.id !==
+                    lastExerciseId
+            );
+
+        const finalPool =
+            withoutImmediateRepeat.length >
+                0
+                ? withoutImmediateRepeat
+                : candidatePool;
+
+        exercise =
+            finalPool[
+            Math.floor(
+                Math.random() *
+                finalPool.length
+            )
+            ] ?? null;
+    }
+
+    const adaptiveCategory =
+        exercise
+            ? priorityCategories.find(
+                (category) =>
+                    category.name ===
+                    exerciseSubjectName(
+                        exercise
+                    )
+            ) ?? null
             : null;
 
     const subject = exercise
@@ -108,13 +277,13 @@ export default async function StudentExercisePage({
 
     const items =
         exercise &&
-        Array.isArray(
-            exercise.exercise_items
-        )
+            Array.isArray(
+                exercise.exercise_items
+            )
             ? [...exercise.exercise_items].sort(
-                  (a, b) =>
-                      a.position - b.position
-              )
+                (a, b) =>
+                    a.position - b.position
+            )
             : [];
 
     return (
@@ -134,7 +303,7 @@ export default async function StudentExercisePage({
                     <p className="text-lg font-bold">
                         {
                             levelLabels[
-                                student.level
+                            student.level
                             ]
                         }
                     </p>
@@ -208,12 +377,23 @@ export default async function StudentExercisePage({
                         }}
                         inputType={
                             subject?.input_type ===
-                            "numeric"
+                                "numeric"
                                 ? "numeric"
                                 : "text"
                         }
                         classId={id}
                         studentId={student.id}
+                        adaptiveHint={
+                            adaptiveCategory
+                                ? {
+                                    active: true,
+                                    categoryName:
+                                        adaptiveCategory.name,
+                                    successRate:
+                                        adaptiveCategory.rate,
+                                }
+                                : null
+                        }
                     />
                 )}
             </section>

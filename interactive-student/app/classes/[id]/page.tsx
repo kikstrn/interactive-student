@@ -75,12 +75,30 @@ export default async function ClassPage({
                     .filter(Boolean)
                     .join(" · ")}
             >
-                <Link
-                    href={`/classes/${id}/play`}
-                    className="flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
-                >
-                    ▶ Mode Classe
-                </Link>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Link
+                        href={`/classes/${id}/analytics`}
+                        className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-teal-100 bg-teal-50 px-4 py-2.5 text-sm font-black text-teal-700 transition hover:bg-teal-100"
+                    >
+                        📊 Statistiques
+                    </Link>
+
+                    {hasTeacherPin ? (
+                        <Link
+                            href={`/classes/${id}/play`}
+                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+                        >
+                            ▶ Mode Classe
+                        </Link>
+                    ) : (
+                        <Link
+                            href="/settings?setupPin=required"
+                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-black text-amber-800 transition hover:bg-amber-100"
+                        >
+                            🔐 Configurer le PIN
+                        </Link>
+                    )}
+                </div>
             </KlikaoPageHeader>
 
             {!hasTeacherPin && (
