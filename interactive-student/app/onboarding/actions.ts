@@ -180,6 +180,7 @@ export async function completeOnboarding(
                 primary_grade: grade,
                 pin_configured: true,
                 onboarding_completed: true,
+                access_status: "active",
                 tutorial_completed: false,
                 tutorial_skipped: false,
                 tutorial_step: 0,

@@ -42,8 +42,9 @@ export default async function RegisterPage({
                         </p>
 
                         <p className="mt-2 text-sm leading-6 text-teal-700">
-                            Vous recevrez votre invitation KLIKAO par email
-                            après validation de votre demande.
+                            {params.sent === "already"
+                                ? "Une demande est déjà en cours ou a déjà été validée pour cette adresse email."
+                                : "Votre demande apparaît maintenant dans l'administration KLIKAO. Vous recevrez une invitation par email après validation."}
                         </p>
                     </div>
                 )}
@@ -54,8 +55,10 @@ export default async function RegisterPage({
                             ? "Merci de renseigner votre prénom, votre nom et votre adresse email."
                             : params.error === "invalid-email"
                               ? "L'adresse email renseignée n'est pas valide."
-                              : params.error === "configuration"
-                                ? "L'envoi des demandes n'est pas encore configuré."
+                              : params.error === "invalid-grade"
+                              ? "Le niveau de classe sélectionné n'est pas valide."
+                              : params.error === "save-error"
+                                ? "Impossible d'enregistrer votre demande pour le moment."
                                 : "Impossible d'envoyer votre demande pour le moment. Merci de réessayer."}
                     </div>
                 )}
@@ -113,6 +116,27 @@ export default async function RegisterPage({
 
                         <div className="sm:col-span-2">
                             <label className="mb-2 block text-sm font-bold text-slate-700">
+                                Classe principale
+                            </label>
+
+                            <select
+                                name="grade"
+                                defaultValue=""
+                                className="klikao-focus w-full cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 outline-none transition focus:bg-white"
+                            >
+                                <option value="">
+                                    Non renseignée
+                                </option>
+                                <option value="CP">CP</option>
+                                <option value="CE1">CE1</option>
+                                <option value="CE2">CE2</option>
+                                <option value="CM1">CM1</option>
+                                <option value="CM2">CM2</option>
+                            </select>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <label className="mb-2 block text-sm font-bold text-slate-700">
                                 Message
                             </label>
                             <textarea
@@ -126,7 +150,7 @@ export default async function RegisterPage({
                         <div className="sm:col-span-2">
                             <button
                                 type="submit"
-                                className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 active:scale-[0.99]"
+                                className="flex min-h-14 w-full cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3.5 font-black text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-500 active:scale-[0.99]"
                             >
                                 ✉️ Envoyer ma demande
                             </button>
