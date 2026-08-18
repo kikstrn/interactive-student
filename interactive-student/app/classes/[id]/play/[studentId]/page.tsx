@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import {
+    notFound,
+    redirect,
+} from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ExercisePlayer from "./exercise-player";
 
@@ -8,7 +11,6 @@ type StudentExercisePageProps = {
         id: string;
         studentId: string;
     }>;
-
     searchParams: Promise<{
         new?: string;
     }>;
@@ -26,8 +28,8 @@ export default async function StudentExercisePage({
 }: StudentExercisePageProps) {
     const { id, studentId } = await params;
     const query = await searchParams;
-
-    const attemptKey = query.new ?? "initial";
+    const attemptKey =
+        query.new ?? "initial";
 
     const supabase = await createClient();
 
@@ -68,6 +70,14 @@ export default async function StudentExercisePage({
             exercise_type,
             choices,
             subject_id,
+            exercise_items (
+                id,
+                position,
+                prompt,
+                answer,
+                speech_text,
+                choices
+            ),
             subjects (
                 id,
                 name,
@@ -82,7 +92,12 @@ export default async function StudentExercisePage({
 
     const exercise =
         exercises && exercises.length > 0
-            ? exercises[Math.floor(Math.random() * exercises.length)]
+            ? exercises[
+                  Math.floor(
+                      Math.random() *
+                          exercises.length
+                  )
+              ]
             : null;
 
     const subject = exercise
@@ -91,12 +106,23 @@ export default async function StudentExercisePage({
             : exercise.subjects
         : null;
 
+    const items =
+        exercise &&
+        Array.isArray(
+            exercise.exercise_items
+        )
+            ? [...exercise.exercise_items].sort(
+                  (a, b) =>
+                      a.position - b.position
+              )
+            : [];
+
     return (
         <main className="min-h-screen select-none bg-slate-950 text-white">
             <header className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-8 lg:px-10">
                 <Link
                     href={`/classes/${id}/play`}
-                    className="flex min-h-16 min-w-40 items-center justify-center rounded-2xl bg-white/10 px-6 text-lg font-bold text-white transition hover:bg-white/20 active:scale-95"
+                    className="flex min-h-16 min-w-40 cursor-pointer items-center justify-center rounded-2xl bg-white/10 px-6 text-lg font-bold text-white transition hover:bg-white/20 active:scale-95"
                 >
                     ← Retour
                 </Link>
@@ -105,9 +131,12 @@ export default async function StudentExercisePage({
                     <p className="text-sm font-medium text-slate-400">
                         Niveau
                     </p>
-
                     <p className="text-lg font-bold">
-                        {levelLabels[student.level]}
+                        {
+                            levelLabels[
+                                student.level
+                            ]
+                        }
                     </p>
                 </div>
             </header>
@@ -122,7 +151,6 @@ export default async function StudentExercisePage({
                         <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
                             C&apos;est au tour de
                         </p>
-
                         <h1 className="mt-1 text-3xl font-black sm:text-4xl lg:text-5xl">
                             {student.first_name}
                         </h1>
@@ -131,20 +159,23 @@ export default async function StudentExercisePage({
 
                 {!exercise ? (
                     <div className="mt-8 w-full max-w-5xl rounded-[2rem] bg-white/10 p-8 sm:p-12 lg:p-14">
-                        <div className="text-7xl">📚</div>
-
+                        <div className="text-7xl">
+                            📚
+                        </div>
                         <h2 className="mt-6 text-3xl font-black sm:text-4xl">
-                            Aucun exercice disponible
+                            Aucun exercice
+                            disponible
                         </h2>
-
                         <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-slate-300 sm:text-xl">
-                            Aucun exercice actif ne correspond actuellement
-                            au niveau de {student.first_name}.
+                            Aucun exercice actif
+                            ne correspond
+                            actuellement au niveau
+                            de{" "}
+                            {student.first_name}.
                         </p>
-
                         <Link
                             href={`/classes/${id}/play`}
-                            className="mx-auto mt-10 flex min-h-20 max-w-xl items-center justify-center rounded-3xl bg-indigo-600 px-8 text-xl font-black text-white transition hover:bg-indigo-500 active:scale-95 sm:text-2xl"
+                            className="mx-auto mt-10 flex min-h-20 max-w-xl cursor-pointer items-center justify-center rounded-3xl bg-indigo-600 px-8 text-xl font-black text-white transition hover:bg-indigo-500 active:scale-95 sm:text-2xl"
                         >
                             Retour aux élèves
                         </Link>
@@ -155,15 +186,29 @@ export default async function StudentExercisePage({
                         exercise={{
                             id: exercise.id,
                             title: exercise.title,
-                            question: exercise.question,
-                            answer: exercise.answer,
-                            exercise_type: exercise.exercise_type,
-                            choices: exercise.choices,
-                            category_name: subject?.name ?? null,
-                            category_icon: subject?.icon ?? null,
+                            question:
+                                exercise.question,
+                            answer:
+                                exercise.answer,
+                            exercise_type:
+                                exercise.exercise_type,
+                            choices:
+                                Array.isArray(
+                                    exercise.choices
+                                )
+                                    ? exercise.choices
+                                    : null,
+                            category_name:
+                                subject?.name ??
+                                null,
+                            category_icon:
+                                subject?.icon ??
+                                null,
+                            items,
                         }}
                         inputType={
-                            subject?.input_type === "numeric"
+                            subject?.input_type ===
+                            "numeric"
                                 ? "numeric"
                                 : "text"
                         }

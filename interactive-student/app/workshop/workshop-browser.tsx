@@ -15,6 +15,7 @@ type WorkshopExercise = {
     level: string;
     exercise_type: string;
     choices: string[] | null;
+    items_json?: Array<{ prompt: string; answer: string | null; speech_text?: string | null; choices?: string[] | null }> | null;
     download_count: number;
     created_at: string;
 };
@@ -33,6 +34,7 @@ const levelLabels: Record<string, string> = {
 const typeLabels: Record<string, string> = {
     question: "Question",
     qcm: "QCM",
+    voice: "🔊 Écoute",
     oral: "Oral",
     challenge: "Défi",
 };
@@ -207,6 +209,9 @@ export default function WorkshopBrowser({
                         </option>
                         <option value="qcm">
                             QCM
+                        </option>
+                        <option value="voice">
+                            🔊 Écoute
                         </option>
                         <option value="oral">
                             Oral

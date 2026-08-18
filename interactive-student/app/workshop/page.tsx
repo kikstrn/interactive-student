@@ -1,5 +1,4 @@
 import Link from "next/link";
-import KlikaoPageHeader from "@/components/brand/klikao-page-header";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import WorkshopBrowser from "./workshop-browser";
@@ -29,6 +28,7 @@ export default async function WorkshopPage() {
             level,
             exercise_type,
             choices,
+            items_json,
             download_count,
             created_at
         `)
@@ -38,13 +38,28 @@ export default async function WorkshopPage() {
 
     return (
         <main className="min-h-screen bg-slate-50">
+            <header className="border-b border-slate-200 bg-white">
+                <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
+                    <div>
+                        <Link
+                            href="/categories"
+                            className="text-sm font-bold text-slate-500 hover:text-slate-900"
+                        >
+                            ← Mes catégories
+                        </Link>
+                        <h1 className="mt-3 text-3xl font-black text-slate-900">
+                            🌐 Workshop
+                        </h1>
+                    </div>
 
-            <KlikaoPageHeader
-                backHref="/categories"
-                backLabel="Mes catégories"
-                title="Workshop"
-                subtitle="Bibliothèque communautaire KLIKAO"
-            />
+                    <Link
+                        href="/dashboard"
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                        Dashboard
+                    </Link>
+                </div>
+            </header>
 
             <div className="mx-auto max-w-7xl px-6 py-10">
                 <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-8 text-white shadow-sm sm:p-10">
