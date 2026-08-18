@@ -369,16 +369,23 @@ export async function createSupportTicket(
     }
 
     // Les notifications ne bloquent jamais la création du ticket.
-    void sendPushToAdmins({
-        title:
-            `🎫 Nouveau ticket #${ticket.ticket_number}`,
-        body:
-            `${teacherName || teacherEmail} — ${subject}`,
-        url:
-            "/admin/tickets",
-        ticketNumber:
-            ticket.ticket_number,
-    });
+    try {
+        await sendPushToAdmins({
+            title:
+                `🎫 Nouveau ticket #${ticket.ticket_number}`,
+            body:
+                `${teacherName || teacherEmail} — ${subject}`,
+            url:
+                "/admin/tickets",
+            ticketNumber:
+                ticket.ticket_number,
+        });
+    } catch (error) {
+        console.error(
+            "Support ticket admin push:",
+            error
+        );
+    }
 
     void notifyAdminsByEmail({
         ticketNumber:
