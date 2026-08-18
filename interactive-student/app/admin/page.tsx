@@ -32,6 +32,7 @@ export default async function AdminPage() {
         studentsResult,
         exercisesResult,
         accessRequestsResult,
+        supportTicketsResult,
     ] = await Promise.all([
         admin
             .from("profiles")
@@ -68,6 +69,17 @@ export default async function AdminPage() {
                 head: true,
             })
             .eq("status", "pending"),
+
+        admin
+            .from("support_tickets")
+            .select("id", {
+                count: "exact",
+                head: true,
+            })
+            .in("status", [
+                "new",
+                "in_progress",
+            ]),
     ]);
 
     console.log(
@@ -155,6 +167,13 @@ export default async function AdminPage() {
                     </Link>
 
                     <Link
+                        href="/admin/tickets"
+                        className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-violet-200 bg-violet-50 px-5 font-black text-violet-700 transition hover:bg-violet-100"
+                    >
+                        🎫 Voir les tickets
+                    </Link>
+
+                    <Link
                         href="/admin/teachers"
                         className="flex min-h-12 cursor-pointer items-center justify-center rounded-2xl bg-indigo-600 px-5 font-black text-white transition hover:bg-indigo-500"
                     >
@@ -163,7 +182,7 @@ export default async function AdminPage() {
                 </div>
             </div>
 
-            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <StatCard
                     icon="👥"
                     label="Comptes au total"
@@ -187,6 +206,15 @@ export default async function AdminPage() {
                     label="Demandes en attente"
                     value={`${
                         accessRequestsResult.count ??
+                        0
+                    }`}
+                />
+
+                <StatCard
+                    icon="🎫"
+                    label="Tickets ouverts"
+                    value={`${
+                        supportTicketsResult.count ??
                         0
                     }`}
                 />

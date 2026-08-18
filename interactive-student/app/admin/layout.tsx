@@ -82,6 +82,13 @@ export default async function AdminLayout({
                         </Link>
 
                         <Link
+                            href="/admin/tickets"
+                            className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+                        >
+                            🎫 Tickets
+                        </Link>
+
+                        <Link
                             href="/dashboard"
                             className="cursor-pointer rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white transition hover:bg-indigo-500"
                         >
