@@ -14,6 +14,7 @@ const allowedTypes = [
     "question",
     "qcm",
     "voice",
+    "image",
     "oral",
     "challenge",
 ];
@@ -22,6 +23,10 @@ type ParsedItem = {
     prompt: string;
     answer: string;
     speechText: string;
+    speechMode: "synthetic" | "recorded";
+    audioUrl: string;
+    imageUrl: string;
+    imageAlt: string;
     choices: string[];
     correctChoice: number;
 };
@@ -61,6 +66,10 @@ function parseItems(
                 speechText: String(
                     record.speechText ?? ""
                 ).trim(),
+                speechMode: record.speechMode === "recorded" ? "recorded" : "synthetic",
+                audioUrl: String(record.audioUrl ?? "").trim(),
+                imageUrl: String(record.imageUrl ?? "").trim(),
+                imageAlt: String(record.imageAlt ?? "").trim(),
                 choices: Array.isArray(
                     record.choices
                 )
@@ -78,6 +87,7 @@ function parseItems(
     if (
         exerciseType !== "question" &&
         exerciseType !== "voice" &&
+        exerciseType !== "image" &&
         items.length > 1
     ) {
         items.splice(1);
@@ -85,11 +95,21 @@ function parseItems(
 
     for (const item of items) {
         if (exerciseType === "voice") {
-            if (!item.speechText || !item.answer) {
+            if (!item.answer) {
                 return null;
             }
 
-            item.prompt = item.speechText;
+            if (item.speechMode === "recorded") {
+                if (!item.audioUrl) return null;
+                item.prompt = item.speechText || "Écoute l'enregistrement";
+            } else {
+                if (!item.speechText) return null;
+                item.prompt = item.speechText;
+            }
+        } else if (exerciseType === "image") {
+            if (!item.imageUrl || !item.prompt || !item.answer) {
+                return null;
+            }
         } else if (exerciseType === "qcm") {
             if (
                 !item.prompt ||
@@ -272,10 +292,15 @@ export async function createExercise(
                     answer:
                         item.answer || null,
                     speech_text:
-                        exerciseType ===
-                        "voice"
-                            ? item.speechText
-                            : null,
+                        exerciseType === "voice" ? item.speechText : null,
+                    speech_mode:
+                        exerciseType === "voice" ? item.speechMode : null,
+                    audio_url:
+                        exerciseType === "voice" ? item.audioUrl || null : null,
+                    image_url:
+                        exerciseType === "image" ? item.imageUrl || null : null,
+                    image_alt:
+                        exerciseType === "image" ? item.imageAlt || null : null,
                     choices:
                         exerciseType ===
                         "qcm"
@@ -405,10 +430,15 @@ export async function updateExercise(
                     answer:
                         item.answer || null,
                     speech_text:
-                        exerciseType ===
-                        "voice"
-                            ? item.speechText
-                            : null,
+                        exerciseType === "voice" ? item.speechText : null,
+                    speech_mode:
+                        exerciseType === "voice" ? item.speechMode : null,
+                    audio_url:
+                        exerciseType === "voice" ? item.audioUrl || null : null,
+                    image_url:
+                        exerciseType === "image" ? item.imageUrl || null : null,
+                    image_alt:
+                        exerciseType === "image" ? item.imageAlt || null : null,
                     choices:
                         exerciseType ===
                         "qcm"

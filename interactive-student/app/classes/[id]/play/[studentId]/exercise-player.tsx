@@ -3,6 +3,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import Link from "next/link";
@@ -15,6 +16,10 @@ type ExerciseItem = {
     prompt: string;
     answer: string | null;
     speech_text: string | null;
+    speech_mode?: string | null;
+    audio_url?: string | null;
+    image_url?: string | null;
+    image_alt?: string | null;
     choices?: string[] | null;
 };
 
@@ -83,6 +88,10 @@ export default function ExercisePlayer({
                         "voice"
                             ? exercise.question
                             : null,
+                    speech_mode: "synthetic",
+                    audio_url: null,
+                    image_url: null,
+                    image_alt: null,
                     choices:
                         exercise.choices ?? null,
                 },
@@ -109,6 +118,7 @@ export default function ExercisePlayer({
         useState(false);
     const [resultSaved, setResultSaved] =
         useState(false);
+    const recordedAudioRef = useRef<HTMLAudioElement | null>(null);
 
     const currentItem =
         items[itemIndex] ?? items[0];
@@ -119,6 +129,8 @@ export default function ExercisePlayer({
         exercise.exercise_type === "qcm";
     const isVoice =
         exercise.exercise_type === "voice";
+    const isImage =
+        exercise.exercise_type === "image";
     const isOral =
         exercise.exercise_type === "oral";
     const isChallenge =
@@ -143,6 +155,8 @@ export default function ExercisePlayer({
             ) {
                 window.speechSynthesis.cancel();
             }
+            recordedAudioRef.current?.pause();
+            recordedAudioRef.current = null;
         };
     }, []);
 
@@ -154,6 +168,8 @@ export default function ExercisePlayer({
         setSpeaking(false);
         setSavingResult(false);
         setResultSaved(false);
+        recordedAudioRef.current?.pause();
+        recordedAudioRef.current = null;
     }
 
     async function saveResult(
@@ -279,13 +295,22 @@ export default function ExercisePlayer({
     }
 
     function speakCurrentItem() {
-        if (
-            !speechSupported ||
-            typeof window === "undefined" ||
-            !currentItem
-        ) {
+        if (typeof window === "undefined" || !currentItem) {
             return;
         }
+
+        if (currentItem.audio_url) {
+            recordedAudioRef.current?.pause();
+            const audio = new Audio(currentItem.audio_url);
+            recordedAudioRef.current = audio;
+            audio.onplay = () => setSpeaking(true);
+            audio.onended = () => setSpeaking(false);
+            audio.onerror = () => setSpeaking(false);
+            void audio.play();
+            return;
+        }
+
+        if (!speechSupported) return;
 
         const text =
             currentItem.speech_text?.trim() ||
@@ -333,7 +358,7 @@ export default function ExercisePlayer({
         : Boolean(studentAnswer.trim());
 
     const answerInput =
-        (isQuestion || isVoice) &&
+        (isQuestion || isVoice || isImage) &&
         !validated ? (
             inputType === "numeric" ? (
                 <NumericAnswer
@@ -347,7 +372,9 @@ export default function ExercisePlayer({
                     <label className="mb-3 block text-center text-lg font-bold text-slate-600">
                         {isVoice
                             ? "Écris ce que tu as entendu"
-                            : "Écris ta réponse"}
+                            : isImage
+                              ? "Écris ce que représente l'image"
+                              : "Écris ta réponse"}
                     </label>
 
                     <input
@@ -384,6 +411,7 @@ export default function ExercisePlayer({
                     {isQcm && "QCM"}
                     {isVoice &&
                         "🔊 Écoute / Voix"}
+                    {isImage && "🖼️ Image"}
                     {isOral && "Oral"}
                     {isChallenge && "Défi"}
                 </span>
@@ -431,7 +459,7 @@ export default function ExercisePlayer({
                         type="button"
                         onClick={speakCurrentItem}
                         disabled={
-                            !speechSupported ||
+                            (!currentItem?.audio_url && !speechSupported) ||
                             speaking
                         }
                         className="mx-auto mt-7 flex min-h-20 min-w-64 cursor-pointer items-center justify-center rounded-3xl bg-indigo-600 px-8 text-2xl font-black text-white transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
@@ -441,13 +469,26 @@ export default function ExercisePlayer({
                             : "🔊 Écouter"}
                     </button>
 
-                    {!speechSupported && (
+                    {!currentItem?.audio_url && !speechSupported && (
                         <p className="mt-4 font-bold text-red-600">
                             La lecture vocale
                             n&apos;est pas disponible
                             sur ce navigateur.
                         </p>
                     )}
+                </div>
+            ) : isImage ? (
+                <div className="mx-auto mt-8 max-w-5xl rounded-3xl bg-slate-50 p-5 text-center sm:p-8">
+                    {currentItem?.image_url && (
+                        <img
+                            src={currentItem.image_url}
+                            alt={currentItem.image_alt || "Image de l'exercice"}
+                            className="mx-auto max-h-[420px] w-auto max-w-full rounded-2xl object-contain shadow-sm"
+                        />
+                    )}
+                    <p className="mt-6 text-3xl font-black leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                        {currentItem?.prompt}
+                    </p>
                 </div>
             ) : (
                 <div className="mx-auto mt-8 flex min-h-64 max-w-5xl items-center justify-center rounded-3xl bg-slate-50 px-6 py-10 text-center sm:min-h-72 sm:px-10">
@@ -493,7 +534,8 @@ export default function ExercisePlayer({
             {!validated &&
                 (isQuestion ||
                     isQcm ||
-                    isVoice) && (
+                    isVoice ||
+                    isImage) && (
                     <button
                         type="button"
                         disabled={

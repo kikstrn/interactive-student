@@ -76,6 +76,10 @@ export default async function StudentExercisePage({
                 prompt,
                 answer,
                 speech_text,
+                speech_mode,
+                audio_url,
+                image_url,
+                image_alt,
                 choices
             ),
             subjects (

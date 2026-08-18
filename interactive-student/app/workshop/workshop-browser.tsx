@@ -15,7 +15,16 @@ type WorkshopExercise = {
     level: string;
     exercise_type: string;
     choices: string[] | null;
-    items_json?: Array<{ prompt: string; answer: string | null; speech_text?: string | null; choices?: string[] | null }> | null;
+    items_json?: Array<{
+        prompt: string;
+        answer: string | null;
+        speech_text?: string | null;
+        speech_mode?: string | null;
+        audio_url?: string | null;
+        image_url?: string | null;
+        image_alt?: string | null;
+        choices?: string[] | null;
+    }> | null;
     download_count: number;
     created_at: string;
 };
@@ -35,6 +44,7 @@ const typeLabels: Record<string, string> = {
     question: "Question",
     qcm: "QCM",
     voice: "🔊 Écoute",
+    image: "🖼️ Image",
     oral: "Oral",
     challenge: "Défi",
 };
@@ -213,6 +223,9 @@ export default function WorkshopBrowser({
                         <option value="voice">
                             🔊 Écoute
                         </option>
+                        <option value="image">
+                            🖼️ Image
+                        </option>
                         <option value="oral">
                             Oral
                         </option>
@@ -355,6 +368,15 @@ export default function WorkshopBrowser({
                             <h2 className="mt-5 text-xl font-black text-slate-900">
                                 {exercise.title ?? "Exercice"}
                             </h2>
+
+                            {exercise.exercise_type === "image" && exercise.items_json?.[0]?.image_url && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={exercise.items_json[0].image_url}
+                                    alt={exercise.items_json[0].image_alt || "Aperçu"}
+                                    className="mt-4 h-40 w-full rounded-2xl object-contain bg-slate-50"
+                                />
+                            )}
 
                             <p className="mt-3 flex-1 text-base font-semibold leading-relaxed text-slate-700">
                                 {exercise.question}

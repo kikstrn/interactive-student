@@ -23,6 +23,7 @@ const typeLabels: Record<string, string> = {
     question: "Question",
     qcm: "QCM",
     voice: "🔊 Écoute",
+    image: "🖼️ Image",
     oral: "Oral",
     challenge: "Défi",
 };
@@ -78,6 +79,10 @@ export default async function CategoryPage({
                 prompt,
                 answer,
                 speech_text,
+                speech_mode,
+                audio_url,
+                image_url,
+                image_alt,
                 choices
             )
         `)
