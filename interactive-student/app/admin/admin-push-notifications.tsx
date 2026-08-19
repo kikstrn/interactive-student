@@ -429,24 +429,6 @@ export default function AdminPushNotifications() {
                 </span>
             </button>
 
-            {state ===
-                "active" && (
-                <button
-                    type="button"
-                    onClick={
-                        testPush
-                    }
-                    disabled={
-                        testing
-                    }
-                    className="min-h-11 cursor-pointer rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-sm font-black text-indigo-700 disabled:cursor-wait disabled:opacity-60"
-                >
-                    {testing
-                        ? "…"
-                        : "Tester"}
-                </button>
-            )}
-
             {message && (
                 <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border bg-white p-3 text-xs font-bold shadow-xl">
                     {message}

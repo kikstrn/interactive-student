@@ -13,6 +13,7 @@ type StudentExercisePageProps = {
     }>;
     searchParams: Promise<{
         new?: string;
+        exercise?: string;
     }>;
 };
 
@@ -30,6 +31,9 @@ export default async function StudentExercisePage({
     const query = await searchParams;
     const attemptKey =
         query.new ?? "initial";
+
+    const requestedExerciseId =
+        query.exercise ?? null;
 
     const supabase = await createClient();
 
@@ -68,6 +72,7 @@ export default async function StudentExercisePage({
             answer,
             level,
             exercise_type,
+            answer_input_type,
             choices,
             subject_id,
             exercise_items (
@@ -201,38 +206,59 @@ export default async function StudentExercisePage({
         return candidateSubject?.name ?? "";
     }
 
+    /*
+     * IMPORTANT — exercice stable pendant toute la correction
+     * --------------------------------------------------------
+     * Une Server Action peut provoquer un nouveau rendu RSC de la page.
+     * Comme cette page choisissait auparavant l'exercice avec Math.random(),
+     * le simple fait d'enregistrer une réponse pouvait donc sélectionner
+     * immédiatement un autre exercice.
+     *
+     * Désormais l'exercice choisi est inscrit dans l'URL :
+     * ?exercise=<uuid>
+     *
+     * Tant que le professeur / l'élève ne clique pas sur "Nouvel exercice",
+     * tous les re-renders serveur conservent exactement le même exercice.
+     */
     let exercise =
-        exercises && exercises.length > 0
-            ? exercises[
-            Math.floor(
-                Math.random() *
-                exercises.length
-            )
-            ]
+        requestedExerciseId
+            ? exercises?.find(
+                  (candidate) =>
+                      candidate.id ===
+                      requestedExerciseId
+              ) ?? null
             : null;
 
-    if (exercises && exercises.length > 0) {
-        const priorityNames = new Set(
-            priorityCategories.map(
-                (category) => category.name
-            )
-        );
-
-        const priorityExercises =
-            exercises.filter((candidate) =>
-                priorityNames.has(
-                    exerciseSubjectName(
-                        candidate
-                    )
+    if (
+        !exercise &&
+        exercises &&
+        exercises.length > 0
+    ) {
+        const priorityNames =
+            new Set(
+                priorityCategories.map(
+                    (category) =>
+                        category.name
                 )
             );
 
+        const priorityExercises =
+            exercises.filter(
+                (candidate) =>
+                    priorityNames.has(
+                        exerciseSubjectName(
+                            candidate
+                        )
+                    )
+            );
+
         /*
-         * 75 % de chance de travailler une difficulté détectée,
-         * 25 % de chance de conserver de la variété.
+         * On garde l'entraînement adaptatif pour la sélection initiale.
+         * Une fois choisi, l'ID est fixé dans l'URL.
          */
         const shouldUsePriority =
-            priorityExercises.length > 0 &&
+            priorityExercises.length >
+                0 &&
             Math.random() < 0.75;
 
         const candidatePool =
@@ -255,11 +281,21 @@ export default async function StudentExercisePage({
 
         exercise =
             finalPool[
-            Math.floor(
-                Math.random() *
-                finalPool.length
-            )
+                Math.floor(
+                    Math.random() *
+                        finalPool.length
+                )
             ] ?? null;
+
+        if (exercise) {
+            redirect(
+                `/classes/${id}/play/${studentId}?new=${encodeURIComponent(
+                    attemptKey
+                )}&exercise=${encodeURIComponent(
+                    exercise.id
+                )}`
+            );
+        }
     }
 
     const adaptiveCategory =
@@ -279,6 +315,210 @@ export default async function StudentExercisePage({
             : exercise.subjects
         : null;
 
+    const normalizedSubjectName =
+        subject?.name
+            ?.trim()
+            .toLocaleLowerCase("fr")
+            .normalize("NFD")
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            ) ?? "";
+
+    const isMathSubject =
+        [
+            "math",
+            "calcul",
+            "numeration",
+            "nombre",
+            "operation",
+            "multiplication",
+            "division",
+            "addition",
+            "soustraction",
+            "fraction",
+            "decimal",
+            "mesure",
+        ].some((keyword) =>
+            normalizedSubjectName.includes(
+                keyword
+            )
+        );
+
+    const expectedAnswers =
+        exercise
+            ? (
+                  Array.isArray(
+                      exercise.exercise_items
+                  ) &&
+                  exercise.exercise_items
+                      .length > 0
+                      ? exercise.exercise_items.map(
+                            (
+                                item
+                            ) =>
+                                item.answer
+                        )
+                      : [
+                            exercise.answer,
+                        ]
+              )
+                  .filter(
+                      (
+                          answer
+                      ): answer is string =>
+                          typeof answer ===
+                              "string" &&
+                          answer.trim()
+                              .length > 0
+                  )
+                  .map((answer) =>
+                      answer.trim()
+                  )
+            : [];
+
+    const answersAreNumeric =
+        expectedAnswers.length >
+            0 &&
+        expectedAnswers.every(
+            (answer) =>
+                /^-?\d+(?:[.,]\d+)?$/.test(
+                    answer
+                )
+        );
+
+    const explicitAnswerInputType =
+        exercise?.answer_input_type ??
+        null;
+
+    const shouldUseNumericKeyboard =
+        explicitAnswerInputType ===
+            "numeric" ||
+        (explicitAnswerInputType ===
+            null &&
+            (subject?.input_type ===
+                "numeric" ||
+                (isMathSubject &&
+                    answersAreNumeric)));
+
+    const shouldUseTextKeyboard =
+        explicitAnswerInputType ===
+            "text";
+
+    const resolvedInputType:
+        | "text"
+        | "numeric" =
+        shouldUseTextKeyboard
+            ? "text"
+            : shouldUseNumericKeyboard
+              ? "numeric"
+              : "text";
+
+    function resolveCandidateInputType(
+        candidate: ExerciseCandidate
+    ): "text" | "numeric" {
+        if (
+            candidate.answer_input_type ===
+            "numeric"
+        ) {
+            return "numeric";
+        }
+
+        if (
+            candidate.answer_input_type ===
+            "text"
+        ) {
+            return "text";
+        }
+
+        const candidateSubject =
+            Array.isArray(
+                candidate.subjects
+            )
+                ? candidate.subjects[0]
+                : candidate.subjects;
+
+        if (
+            candidateSubject?.input_type ===
+            "numeric"
+        ) {
+            return "numeric";
+        }
+
+        const candidateName =
+            candidateSubject?.name
+                ?.trim()
+                .toLocaleLowerCase("fr")
+                .normalize("NFD")
+                .replace(
+                    /[\u0300-\u036f]/g,
+                    ""
+                ) ?? "";
+
+        const mathLike =
+            [
+                "math",
+                "calcul",
+                "numeration",
+                "nombre",
+                "operation",
+                "multiplication",
+                "division",
+                "addition",
+                "soustraction",
+                "fraction",
+                "decimal",
+                "mesure",
+            ].some((keyword) =>
+                candidateName.includes(
+                    keyword
+                )
+            );
+
+        const candidateAnswers =
+            Array.isArray(
+                candidate.exercise_items
+            ) &&
+            candidate.exercise_items
+                .length > 0
+                ? candidate.exercise_items
+                      .map(
+                          (item) =>
+                              item.answer
+                      )
+                      .filter(
+                          (
+                              answer
+                          ): answer is string =>
+                              typeof answer ===
+                              "string"
+                      )
+                : [
+                      candidate.answer,
+                  ].filter(
+                      (
+                          answer
+                      ): answer is string =>
+                          typeof answer ===
+                          "string"
+                  );
+
+        const numericAnswers =
+            candidateAnswers.length >
+                0 &&
+            candidateAnswers.every(
+                (answer) =>
+                    /^-?\d+(?:[.,]\d+)?$/.test(
+                        answer.trim()
+                    )
+            );
+
+        return mathLike &&
+            numericAnswers
+            ? "numeric"
+            : "text";
+    }
+
     const items =
         exercise &&
             Array.isArray(
@@ -289,6 +529,62 @@ export default async function StudentExercisePage({
                     a.position - b.position
             )
             : [];
+
+    const exercisePool =
+        (exercises ?? []).map(
+            (candidate) => {
+                const candidateSubject =
+                    Array.isArray(
+                        candidate.subjects
+                    )
+                        ? candidate.subjects[0]
+                        : candidate.subjects;
+
+                const candidateItems =
+                    Array.isArray(
+                        candidate.exercise_items
+                    )
+                        ? [
+                              ...candidate.exercise_items,
+                          ].sort(
+                              (a, b) =>
+                                  a.position -
+                                  b.position
+                          )
+                        : [];
+
+                return {
+                    id:
+                        candidate.id,
+                    title:
+                        candidate.title,
+                    question:
+                        candidate.question,
+                    answer:
+                        candidate.answer,
+                    exercise_type:
+                        candidate.exercise_type,
+                    choices:
+                        Array.isArray(
+                            candidate.choices
+                        )
+                            ? candidate.choices
+                            : null,
+                    category_name:
+                        candidateSubject?.name ??
+                        null,
+                    category_icon:
+                        candidateSubject?.icon ??
+                        null,
+                    items:
+                        candidateItems,
+                    inputType:
+                        resolveCandidateInputType(
+                            candidate
+                        ),
+                };
+            }
+        );
 
     return (
         <main className="min-h-screen select-none bg-slate-950 text-white">
@@ -380,10 +676,10 @@ export default async function StudentExercisePage({
                             items,
                         }}
                         inputType={
-                            subject?.input_type ===
-                                "numeric"
-                                ? "numeric"
-                                : "text"
+                            resolvedInputType
+                        }
+                        exercisePool={
+                            exercisePool
                         }
                         classId={id}
                         studentId={student.id}

@@ -24,6 +24,16 @@ export async function importWorkshopExercise(
         redirect("/login");
     }
 
+    const {
+        data: workshopExercise,
+    } = await supabase
+        .from("workshop_exercises")
+        .select(
+            "id, answer_input_type"
+        )
+        .eq("id", workshopId)
+        .single();
+
     const { data, error } = await supabase.rpc(
         "import_workshop_exercise",
         {
@@ -37,6 +47,24 @@ export async function importWorkshopExercise(
             success: false,
             reason: "error",
         };
+    }
+
+    if (workshopExercise) {
+        await supabase
+            .from("exercises")
+            .update({
+                answer_input_type:
+                    workshopExercise.answer_input_type ??
+                    null,
+            })
+            .eq(
+                "teacher_id",
+                user.id
+            )
+            .eq(
+                "source_workshop_id",
+                workshopId
+            );
     }
 
     revalidatePath("/workshop");
@@ -109,6 +137,43 @@ export async function installOfficialGradePack(
             success: false,
             reason: "error",
         };
+    }
+
+    const {
+        data: packKeyboardRows,
+    } = await supabase
+        .from("workshop_exercises")
+        .select(
+            "id, answer_input_type"
+        )
+        .eq("is_official", true)
+        .eq("pack_grade", grade);
+
+    for (
+        const row of
+        packKeyboardRows ?? []
+    ) {
+        if (
+            row.answer_input_type ===
+                "numeric" ||
+            row.answer_input_type ===
+                "text"
+        ) {
+            await supabase
+                .from("exercises")
+                .update({
+                    answer_input_type:
+                        row.answer_input_type,
+                })
+                .eq(
+                    "teacher_id",
+                    user.id
+                )
+                .eq(
+                    "source_workshop_id",
+                    row.id
+                );
+        }
     }
 
     revalidatePath("/workshop");

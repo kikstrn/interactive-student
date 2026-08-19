@@ -69,6 +69,7 @@ export default async function CategoryPage({
             answer,
             level,
             exercise_type,
+            answer_input_type,
             choices,
             active,
             source_workshop_id,
@@ -355,6 +356,9 @@ export default async function CategoryPage({
                                                         share_to_workshop:
                                                             exercise.share_to_workshop ??
                                                             false,
+                                                        answer_input_type:
+                                                            exercise.answer_input_type ??
+                                                            null,
                                                         question:
                                                             exercise.question,
                                                         answer:

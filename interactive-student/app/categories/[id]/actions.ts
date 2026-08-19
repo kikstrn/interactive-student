@@ -193,11 +193,27 @@ function commonFormValues(formData: FormData) {
         formData.get("shareToWorkshop") ===
         "true";
 
+    const rawAnswerInputType =
+        String(
+            formData.get(
+                "answerInputType"
+            ) ?? "auto"
+        );
+
+    const answerInputType =
+        rawAnswerInputType ===
+            "numeric" ||
+        rawAnswerInputType ===
+            "text"
+            ? rawAnswerInputType
+            : null;
+
     return {
         title,
         level,
         exerciseType,
         shareToWorkshop,
+        answerInputType,
     };
 }
 
@@ -228,6 +244,7 @@ export async function createExercise(
         level,
         exerciseType,
         shareToWorkshop,
+        answerInputType,
     } = commonFormValues(formData);
 
     if (!allowedLevels.includes(level)) {
@@ -262,6 +279,8 @@ export async function createExercise(
                 level,
                 exercise_type:
                     exerciseType,
+                answer_input_type:
+                    answerInputType,
                 choices:
                     exerciseType === "qcm"
                         ? first.choices
@@ -324,6 +343,23 @@ export async function createExercise(
         return;
     }
 
+    if (shareToWorkshop) {
+        await supabase
+            .from("workshop_exercises")
+            .update({
+                answer_input_type:
+                    answerInputType,
+            })
+            .eq(
+                "original_exercise_id",
+                exercise.id
+            )
+            .eq(
+                "author_id",
+                user.id
+            );
+    }
+
     revalidateExercisePages(categoryId);
 }
 
@@ -357,6 +393,7 @@ export async function updateExercise(
         level,
         exerciseType,
         shareToWorkshop,
+        answerInputType,
     } = commonFormValues(formData);
 
     if (
@@ -385,6 +422,8 @@ export async function updateExercise(
             answer: first.answer || null,
             level,
             exercise_type: exerciseType,
+            answer_input_type:
+                answerInputType,
             choices:
                 exerciseType === "qcm"
                     ? first.choices
@@ -453,6 +492,23 @@ export async function updateExercise(
             insertItemsError
         );
         return;
+    }
+
+    if (shareToWorkshop) {
+        await supabase
+            .from("workshop_exercises")
+            .update({
+                answer_input_type:
+                    answerInputType,
+            })
+            .eq(
+                "original_exercise_id",
+                exerciseId
+            )
+            .eq(
+                "author_id",
+                user.id
+            );
     }
 
     revalidateExercisePages(categoryId);

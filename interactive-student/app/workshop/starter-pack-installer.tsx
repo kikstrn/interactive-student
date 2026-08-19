@@ -5,6 +5,7 @@ import { installOfficialGradePack } from "./actions";
 
 type StarterPackInstallerProps = {
     counts?: Partial<Record<string, number>>;
+    installedGrades?: string[];
 };
 
 const grades = [
@@ -47,6 +48,7 @@ const grades = [
 
 export default function StarterPackInstaller({
     counts = {},
+    installedGrades = [],
 }: StarterPackInstallerProps) {
     const [loadingGrade, setLoadingGrade] =
         useState<string | null>(null);
@@ -55,6 +57,16 @@ export default function StarterPackInstaller({
         useState<Record<string, string>>(
             {}
         );
+
+    const [
+        locallyInstalledGrades,
+        setLocallyInstalledGrades,
+    ] = useState<Set<string>>(
+        () =>
+            new Set(
+                installedGrades
+            )
+    );
 
     async function installPack(
         grade: string
@@ -98,6 +110,25 @@ export default function StarterPackInstaller({
             result.imported ?? 0;
         const already =
             result.alreadyImported ?? 0;
+
+        const total =
+            result.total ?? 0;
+
+        if (
+            total > 0 &&
+            imported + already >= total
+        ) {
+            setLocallyInstalledGrades(
+                (current) => {
+                    const next =
+                        new Set(
+                            current
+                        );
+                    next.add(grade);
+                    return next;
+                }
+            );
+        }
 
         if (imported === 0 && already > 0) {
             setMessages((current) => ({
@@ -160,6 +191,11 @@ export default function StarterPackInstaller({
                         loadingGrade ===
                         grade.value;
 
+                    const installed =
+                        locallyInstalledGrades.has(
+                            grade.value
+                        );
+
                     return (
                         <article
                             key={grade.value}
@@ -197,13 +233,20 @@ export default function StarterPackInstaller({
                                 disabled={
                                     Boolean(
                                         loadingGrade
-                                    )
+                                    ) ||
+                                    installed
                                 }
-                                className="mt-5 min-h-12 w-full cursor-pointer rounded-2xl bg-indigo-600 px-4 font-black text-white transition hover:bg-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                                className={`mt-5 min-h-12 w-full rounded-2xl px-4 font-black text-white transition ${
+                                    installed
+                                        ? "cursor-default bg-emerald-600 shadow-sm"
+                                        : "cursor-pointer bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                                }`}
                             >
                                 {loading
                                     ? "Installation..."
-                                    : `Installer le pack ${grade.label}`}
+                                    : installed
+                                      ? `✓ Pack ${grade.label} installé`
+                                      : `Installer le pack ${grade.label}`}
                             </button>
 
                             {messages[

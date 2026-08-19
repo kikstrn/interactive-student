@@ -7,8 +7,6 @@ import {
     useState,
 } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { recordStudentAnswer } from "./result-actions";
 
 type ExerciseItem = {
     id?: string;
@@ -33,11 +31,13 @@ type Exercise = {
     category_name: string | null;
     category_icon: string | null;
     items?: ExerciseItem[] | null;
+    inputType?: "text" | "numeric";
 };
 
 type ExercisePlayerProps = {
     exercise: Exercise;
     inputType: "text" | "numeric";
+    exercisePool?: Exercise[];
     classId: string;
     studentId: string;
     adaptiveHint?: {
@@ -60,19 +60,34 @@ function normalizeAnswer(value: string) {
 export default function ExercisePlayer({
     exercise,
     inputType,
+    exercisePool = [],
     classId,
     studentId,
     adaptiveHint,
 }: ExercisePlayerProps) {
-    const router = useRouter();
+    const [
+        activeExercise,
+        setActiveExercise,
+    ] =
+        useState<Exercise>(
+            exercise
+        );
+
+    const [
+        activeInputType,
+        setActiveInputType,
+    ] =
+        useState<
+            "text" | "numeric"
+        >(inputType);
 
     const items = useMemo<ExerciseItem[]>(
         () => {
             if (
-                Array.isArray(exercise.items) &&
-                exercise.items.length > 0
+                Array.isArray(activeExercise.items) &&
+                activeExercise.items.length > 0
             ) {
-                return [...exercise.items].sort(
+                return [...activeExercise.items].sort(
                     (a, b) =>
                         a.position - b.position
                 );
@@ -81,23 +96,23 @@ export default function ExercisePlayer({
             return [
                 {
                     position: 0,
-                    prompt: exercise.question,
-                    answer: exercise.answer,
+                    prompt: activeExercise.question,
+                    answer: activeExercise.answer,
                     speech_text:
-                        exercise.exercise_type ===
+                        activeExercise.exercise_type ===
                         "voice"
-                            ? exercise.question
+                            ? activeExercise.question
                             : null,
                     speech_mode: "synthetic",
                     audio_url: null,
                     image_url: null,
                     image_alt: null,
                     choices:
-                        exercise.choices ?? null,
+                        activeExercise.choices ?? null,
                 },
             ];
         },
-        [exercise]
+        [activeExercise]
     );
 
     const [itemIndex, setItemIndex] =
@@ -124,17 +139,17 @@ export default function ExercisePlayer({
         items[itemIndex] ?? items[0];
 
     const isQuestion =
-        exercise.exercise_type === "question";
+        activeExercise.exercise_type === "question";
     const isQcm =
-        exercise.exercise_type === "qcm";
+        activeExercise.exercise_type === "qcm";
     const isVoice =
-        exercise.exercise_type === "voice";
+        activeExercise.exercise_type === "voice";
     const isImage =
-        exercise.exercise_type === "image";
+        activeExercise.exercise_type === "image";
     const isOral =
-        exercise.exercise_type === "oral";
+        activeExercise.exercise_type === "oral";
     const isChallenge =
-        exercise.exercise_type === "challenge";
+        activeExercise.exercise_type === "challenge";
 
     const isTeacherValidation =
         isOral || isChallenge;
@@ -182,43 +197,94 @@ export default function ExercisePlayer({
 
         setSavingResult(true);
 
-        const result =
-            await recordStudentAnswer({
-                classId,
-                studentId,
-                exerciseId: exercise.id,
-                exerciseItemId:
-                    currentItem.id ?? null,
-                itemPosition:
-                    currentItem.position ??
-                    itemIndex,
-                exerciseTitle:
-                    exercise.title,
-                exerciseType:
-                    exercise.exercise_type,
-                categoryName:
-                    exercise.category_name,
-                categoryIcon:
-                    exercise.category_icon,
-                prompt:
-                    currentItem.prompt,
-                studentAnswer:
-                    answerGiven,
-                expectedAnswer:
-                    currentItem.answer,
-                isCorrect: correct,
-            });
+        try {
+            /*
+             * IMPORTANT :
+             * on utilise désormais un POST classique vers une Route Handler,
+             * et NON une Server Action.
+             *
+             * Une Server Action peut demander à Next.js de réconcilier
+             * l'arbre Server Components après la réponse. C'était la dernière
+             * source possible de "refresh" du Mode Classe.
+             *
+             * fetch() n'effectue aucune navigation et ne remonte aucun nouvel
+             * arbre RSC : l'écran reste strictement en place.
+             */
+            const response =
+                await fetch(
+                    "/api/student-results",
+                    {
+                        method:
+                            "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+                        },
+                        credentials:
+                            "same-origin",
+                        cache:
+                            "no-store",
+                        body:
+                            JSON.stringify({
+                                classId,
+                                studentId,
+                                exerciseId:
+                                    activeExercise.id,
+                                exerciseItemId:
+                                    currentItem.id ??
+                                    null,
+                                itemPosition:
+                                    currentItem.position ??
+                                    itemIndex,
+                                exerciseTitle:
+                                    activeExercise.title,
+                                exerciseType:
+                                    activeExercise.exercise_type,
+                                categoryName:
+                                    activeExercise.category_name,
+                                categoryIcon:
+                                    activeExercise.category_icon,
+                                prompt:
+                                    currentItem.prompt,
+                                studentAnswer:
+                                    answerGiven,
+                                expectedAnswer:
+                                    currentItem.answer,
+                                isCorrect:
+                                    correct,
+                            }),
+                    }
+                );
 
-        if (result.success) {
-            setResultSaved(true);
-        } else {
+            const result =
+                (await response.json()) as {
+                    success: boolean;
+                    reason?: string;
+                };
+
+            if (
+                response.ok &&
+                result.success
+            ) {
+                setResultSaved(
+                    true
+                );
+            } else {
+                console.error(
+                    "Impossible d'enregistrer le résultat :",
+                    result.reason
+                );
+            }
+        } catch (error) {
             console.error(
                 "Impossible d'enregistrer le résultat :",
-                result.reason
+                error
+            );
+        } finally {
+            setSavingResult(
+                false
             );
         }
-
-        setSavingResult(false);
     }
 
     function addNumber(value: string) {
@@ -238,6 +304,37 @@ export default function ExercisePlayer({
     function clearAnswer() {
         if (validated) return;
         setStudentAnswer("");
+    }
+
+    function addTextCharacter(
+        value: string
+    ) {
+        if (validated) return;
+
+        setStudentAnswer(
+            (current) =>
+                current + value
+        );
+    }
+
+    function addSpace() {
+        if (validated) return;
+
+        setStudentAnswer(
+            (current) =>
+                current.endsWith(" ")
+                    ? current
+                    : current + " "
+        );
+    }
+
+    function removeTextCharacter() {
+        if (validated) return;
+
+        setStudentAnswer(
+            (current) =>
+                current.slice(0, -1)
+        );
     }
 
     async function validateStudentAnswer() {
@@ -289,8 +386,64 @@ export default function ExercisePlayer({
     function nextExercise() {
         if (savingResult) return;
 
-        router.push(
-            `/classes/${classId}/play/${studentId}?new=${Date.now()}`
+        const candidates =
+            exercisePool.filter(
+                (candidate) =>
+                    candidate.id !==
+                    activeExercise.id
+            );
+
+        if (
+            candidates.length === 0
+        ) {
+            setItemIndex(0);
+            resetCurrentAnswer();
+            return;
+        }
+
+        const nextExercise =
+            candidates[
+                Math.floor(
+                    Math.random() *
+                        candidates.length
+                )
+            ];
+
+        if (!nextExercise) {
+            return;
+        }
+
+        setActiveExercise(
+            nextExercise
+        );
+
+        setActiveInputType(
+            nextExercise.inputType ??
+                "text"
+        );
+
+        setItemIndex(0);
+        resetCurrentAnswer();
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+        url.searchParams.set(
+            "new",
+            Date.now().toString()
+        );
+
+        url.searchParams.set(
+            "exercise",
+            nextExercise.id
+        );
+
+        window.history.replaceState(
+            window.history.state,
+            "",
+            url.toString()
         );
     }
 
@@ -360,7 +513,7 @@ export default function ExercisePlayer({
     const answerInput =
         (isQuestion || isVoice || isImage) &&
         !validated ? (
-            inputType === "numeric" ? (
+            activeInputType === "numeric" ? (
                 <NumericAnswer
                     value={studentAnswer}
                     onAdd={addNumber}
@@ -368,41 +521,41 @@ export default function ExercisePlayer({
                     onClear={clearAnswer}
                 />
             ) : (
-                <div className="mx-auto mt-8 max-w-4xl">
-                    <label className="mb-3 block text-center text-lg font-bold text-slate-600">
-                        {isVoice
+                <TextAnswer
+                    value={
+                        studentAnswer
+                    }
+                    label={
+                        isVoice
                             ? "Écris ce que tu as entendu"
                             : isImage
                               ? "Écris ce que représente l'image"
-                              : "Écris ta réponse"}
-                    </label>
-
-                    <input
-                        value={studentAnswer}
-                        onChange={(event) =>
-                            setStudentAnswer(
-                                event.target.value
-                            )
-                        }
-                        type="text"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        placeholder="Ta réponse..."
-                        className="min-h-24 w-full rounded-3xl border-4 border-slate-200 bg-slate-50 px-6 text-center text-3xl font-black text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-indigo-500 sm:text-4xl"
-                    />
-                </div>
+                              : "Écris ta réponse"
+                    }
+                    onAdd={
+                        addTextCharacter
+                    }
+                    onSpace={
+                        addSpace
+                    }
+                    onRemove={
+                        removeTextCharacter
+                    }
+                    onClear={
+                        clearAnswer
+                    }
+                />
             )
         ) : null;
 
     return (
         <div className="mt-8 w-full max-w-6xl rounded-[2rem] bg-white p-7 text-slate-900 shadow-2xl sm:p-10 lg:p-14">
             <div className="flex flex-wrap items-center justify-center gap-3">
-                {exercise.category_name && (
+                {activeExercise.category_name && (
                     <span className="rounded-full bg-indigo-50 px-5 py-3 text-base font-black text-indigo-700 sm:text-lg">
-                        {exercise.category_icon ??
+                        {activeExercise.category_icon ??
                             "📚"}{" "}
-                        {exercise.category_name}
+                        {activeExercise.category_name}
                     </span>
                 )}
 
@@ -433,9 +586,9 @@ export default function ExercisePlayer({
                 )}
             </div>
 
-            {exercise.title && (
+            {activeExercise.title && (
                 <h2 className="mt-7 text-center text-2xl font-black text-slate-500 sm:text-3xl">
-                    {exercise.title}
+                    {activeExercise.title}
                 </h2>
             )}
 
@@ -667,6 +820,134 @@ export default function ExercisePlayer({
                     </Link>
                 </div>
             )}
+        </div>
+    );
+}
+
+/* KLIKAO_AZERTY_COMPACT_V3 */
+function TextAnswer({
+    value,
+    label,
+    onAdd,
+    onSpace,
+    onRemove,
+    onClear,
+}: {
+    value: string;
+    label: string;
+    onAdd: (value: string) => void;
+    onSpace: () => void;
+    onRemove: () => void;
+    onClear: () => void;
+}) {
+    const rows = [
+        ["a", "z", "e", "r", "t", "y", "u", "i", "o", "p"],
+        ["q", "s", "d", "f", "g", "h", "j", "k", "l", "m"],
+        ["w", "x", "c", "v", "b", "n", "é", "è", "à", "ç"],
+    ];
+
+    return (
+        <div className="mx-auto mt-5 w-full max-w-4xl">
+            <p className="mb-2 text-center text-base font-bold text-slate-600 sm:text-lg">
+                {label}
+            </p>
+
+            <div className="mb-3 flex min-h-14 items-center justify-center rounded-2xl border-4 border-indigo-200 bg-white px-4 py-2 shadow-sm sm:min-h-16">
+                <span
+                    className={`break-words text-center font-black ${
+                        value
+                            ? "text-2xl text-slate-900 sm:text-3xl"
+                            : "text-xl text-slate-300 sm:text-2xl"
+                    }`}
+                >
+                    {value || "Ta réponse..."}
+                </span>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-100 p-2 shadow-inner sm:p-2.5">
+                <div className="space-y-1.5">
+                    {rows.map((row, rowIndex) => (
+                        <div
+                            key={rowIndex}
+                            className={`flex justify-center gap-1.5 ${
+                                rowIndex === 1
+                                    ? "px-3 sm:px-6"
+                                    : rowIndex === 2
+                                      ? "px-7 sm:px-12"
+                                      : ""
+                            }`}
+                        >
+                            {row.map((letter) => (
+                                <button
+                                    key={letter}
+                                    type="button"
+                                    onClick={() => onAdd(letter)}
+                                    className="flex h-10 min-w-0 flex-1 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-0 text-base font-black text-slate-900 shadow-[0_2px_0_rgba(148,163,184,0.4)] transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 active:translate-y-0.5 active:shadow-none sm:h-11 sm:max-w-[64px] sm:rounded-xl sm:text-lg"
+                                >
+                                    {letter}
+                                </button>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => onAdd("ù")}
+                        title="ù"
+                        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-black text-slate-800 shadow-sm hover:bg-slate-50 active:scale-95"
+                    >
+                        ù
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => onAdd("'")}
+                        title="Apostrophe"
+                        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-black text-slate-800 shadow-sm hover:bg-slate-50 active:scale-95"
+                    >
+                        &apos;
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => onAdd("-")}
+                        title="Tiret"
+                        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-base font-black text-slate-800 shadow-sm hover:bg-slate-50 active:scale-95"
+                    >
+                        -
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onSpace}
+                        className="flex h-10 min-w-28 flex-1 cursor-pointer items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 active:scale-[0.99] sm:max-w-[260px]"
+                    >
+                        Espace
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onRemove}
+                        title="Effacer le dernier caractère"
+                        aria-label="Effacer le dernier caractère"
+                        className="flex h-10 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-slate-200 text-xl font-black text-slate-700 transition hover:bg-slate-300 active:scale-95"
+                    >
+                        ⌫
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onClear}
+                        title="Tout effacer"
+                        aria-label="Tout effacer"
+                        className="flex h-10 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-red-100 bg-red-50 text-lg font-black text-red-600 transition hover:bg-red-100 active:scale-95"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

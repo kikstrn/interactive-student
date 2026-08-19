@@ -55,6 +55,7 @@ export default async function WorkshopPage({
             category_name,
             category_icon,
             input_type,
+            answer_input_type,
             title,
             question,
             level,

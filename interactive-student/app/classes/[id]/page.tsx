@@ -78,24 +78,42 @@ export default async function ClassPage({
                 <div className="flex flex-wrap items-center justify-end gap-2">
                     <Link
                         href={`/classes/${id}/analytics`}
-                        className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-teal-100 bg-teal-50 px-4 py-2.5 text-sm font-black text-teal-700 transition hover:bg-teal-100"
+                        aria-label="Statistiques"
+                        className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-teal-100 bg-teal-50 px-3 py-2.5 text-sm font-black text-teal-700 transition hover:bg-teal-100 sm:px-4"
                     >
-                        📊 Statistiques
+                        <span aria-hidden="true">
+                            📊
+                        </span>
+                        <span className="hidden sm:inline">
+                            Statistiques
+                        </span>
                     </Link>
 
                     {hasTeacherPin ? (
                         <Link
                             href={`/classes/${id}/play`}
-                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+                            aria-label="Mode Classe"
+                            className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-indigo-500 active:scale-95 sm:px-4"
                         >
-                            ▶ Mode Classe
+                            <span aria-hidden="true">
+                                ▶
+                            </span>
+                            <span className="hidden sm:inline">
+                                Mode Classe
+                            </span>
                         </Link>
                     ) : (
                         <Link
                             href="/settings?setupPin=required"
-                            className="flex min-h-11 cursor-pointer items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-black text-amber-800 transition hover:bg-amber-100"
+                            aria-label="Configurer le PIN"
+                            className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm font-black text-amber-800 transition hover:bg-amber-100 sm:px-4"
                         >
-                            🔐 Configurer le PIN
+                            <span aria-hidden="true">
+                                🔐
+                            </span>
+                            <span className="hidden sm:inline">
+                                Configurer le PIN
+                            </span>
                         </Link>
                     )}
                 </div>
@@ -125,7 +143,7 @@ export default async function ClassPage({
                 </div>
             )}
 
-            <div className="mx-auto max-w-7xl px-6 py-10">
+            <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900">

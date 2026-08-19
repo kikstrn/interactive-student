@@ -28,6 +28,7 @@ export type ExerciseForEdit = {
     level: string;
     exercise_type: string;
     share_to_workshop: boolean;
+    answer_input_type?: "text" | "numeric" | null;
     question: string;
     answer: string | null;
     choices: string[] | null;
@@ -485,6 +486,51 @@ export default function ExerciseForm({
                             </option>
                         </select>
                     </div>
+
+                    {(exerciseType === "question" ||
+                        exerciseType === "voice" ||
+                        exerciseType === "image") && (
+                        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:p-5">
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-xl shadow-sm">
+                                    ⌨️
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <label className="block text-sm font-black text-slate-800">
+                                        Clavier de réponse
+                                    </label>
+
+                                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                                        Choisissez le clavier affiché à l&apos;élève pour cet exercice.
+                                    </p>
+
+                                    <select
+                                        name="answerInputType"
+                                        defaultValue={
+                                            exercise?.answer_input_type ??
+                                            "auto"
+                                        }
+                                        className="mt-3 w-full cursor-pointer rounded-xl border border-indigo-100 bg-white px-4 py-3 font-bold text-slate-800 outline-none focus:border-indigo-500"
+                                    >
+                                        <option value="auto">
+                                            ✨ Automatique
+                                        </option>
+                                        <option value="text">
+                                            🔤 Clavier AZERTY
+                                        </option>
+                                        <option value="numeric">
+                                            🔢 Pavé numérique
+                                        </option>
+                                    </select>
+
+                                    <p className="mt-2 text-xs font-semibold text-slate-400">
+                                        Exemple : « Combien de syllabes dans maison ? » → Pavé numérique.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {(exerciseType === "question" ||
                         exerciseType === "voice" ||

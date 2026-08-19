@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 
 type RecordAnswerInput = {
     classId: string;
@@ -109,13 +108,6 @@ export async function recordStudentAnswer(
             reason: "insert_error",
         };
     }
-
-    revalidatePath(
-        `/classes/${input.classId}/students/${input.studentId}/progress`
-    );
-    revalidatePath(
-        `/classes/${input.classId}`
-    );
 
     return { success: true };
 }
