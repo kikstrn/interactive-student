@@ -58,6 +58,46 @@ export default async function DashboardPage({
         `)
         .order("created_at", { ascending: false });
 
+    const {
+        count: exerciseCount,
+        error: exerciseCountError,
+    } = await supabase
+        .from("exercises")
+        .select("id", {
+            count: "exact",
+            head: true,
+        })
+        .eq("teacher_id", user.id);
+
+    if (exerciseCountError) {
+        console.error(
+            "Dashboard exercise count:",
+            exerciseCountError
+        );
+    }
+
+    const emailLocalPart =
+        user.email?.split("@")[0] ?? "";
+
+    const fallbackFirstName =
+        emailLocalPart
+            .split(/[._-]+/)
+            .filter(Boolean)
+            .at(-1);
+
+    const teacherFirstName =
+        profile?.first_name?.trim() ||
+        (typeof user.user_metadata?.first_name === "string"
+            ? user.user_metadata.first_name.trim()
+            : "") ||
+        (typeof user.user_metadata?.given_name === "string"
+            ? user.user_metadata.given_name.trim()
+            : "") ||
+        (fallbackFirstName
+            ? fallbackFirstName.charAt(0).toUpperCase() +
+              fallbackFirstName.slice(1)
+            : "Professeur");
+
     const totalStudents =
         classes?.reduce((total, classItem) => {
             const count = classItem.students?.[0]?.count ?? 0;
@@ -227,7 +267,7 @@ export default async function DashboardPage({
                 <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-900">
-                            Bonjour {profile?.first_name ?? "Professeur"} 👋
+                            Bonjour {teacherFirstName} 👋
                         </h2>
 
                         <p className="mt-2 text-slate-500">
@@ -267,7 +307,7 @@ export default async function DashboardPage({
                         </p>
 
                         <p className="mt-2 text-3xl font-bold text-slate-900">
-                            0
+                            {exerciseCount ?? 0}
                         </p>
                     </div>
                 </div>

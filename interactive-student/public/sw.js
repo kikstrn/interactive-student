@@ -121,7 +121,7 @@ self.addEventListener("push", (event) => {
             {
                 body: payload.body,
                 icon: "/icons/icon-192x192.png",
-                badge: "/icons/icon-96x96.png",
+                badge: "/icons/notification-badge.png",
                 tag,
                 renotify: true,
                 data: {

@@ -104,6 +104,18 @@ export default async function AdminPage() {
         profilesResult.data?.length
     );
 
+    if (exercisesResult.error) {
+        console.error(
+            "ADMIN EXERCISES COUNT ERROR:",
+            exercisesResult.error
+        );
+    } else {
+        console.log(
+            "ADMIN EXERCISES COUNT:",
+            exercisesResult.count
+        );
+    }
+
     if (profilesResult.error) {
         console.error(
             "Erreur chargement profiles admin:",
