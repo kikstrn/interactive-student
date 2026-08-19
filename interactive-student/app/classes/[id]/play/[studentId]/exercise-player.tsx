@@ -38,6 +38,7 @@ type ExercisePlayerProps = {
     exercise: Exercise;
     inputType: "text" | "numeric";
     exercisePool?: Exercise[];
+    initiallySeenExerciseIds?: string[];
     classId: string;
     studentId: string;
     adaptiveHint?: {
@@ -61,6 +62,7 @@ export default function ExercisePlayer({
     exercise,
     inputType,
     exercisePool = [],
+    initiallySeenExerciseIds = [],
     classId,
     studentId,
     adaptiveHint,
@@ -80,6 +82,17 @@ export default function ExercisePlayer({
         useState<
             "text" | "numeric"
         >(inputType);
+
+    const [
+        seenExerciseIds,
+        setSeenExerciseIds,
+    ] = useState<Set<string>>(
+        () =>
+            new Set([
+                ...initiallySeenExerciseIds,
+                exercise.id,
+            ])
+    );
 
     const items = useMemo<ExerciseItem[]>(
         () => {
@@ -386,12 +399,27 @@ export default function ExercisePlayer({
     function nextExercise() {
         if (savingResult) return;
 
-        const candidates =
+        const unseenCandidates =
+            exercisePool.filter(
+                (candidate) =>
+                    candidate.id !==
+                        activeExercise.id &&
+                    !seenExerciseIds.has(
+                        candidate.id
+                    )
+            );
+
+        const cycleCandidates =
             exercisePool.filter(
                 (candidate) =>
                     candidate.id !==
                     activeExercise.id
             );
+
+        const candidates =
+            unseenCandidates.length > 0
+                ? unseenCandidates
+                : cycleCandidates;
 
         if (
             candidates.length === 0
@@ -411,6 +439,27 @@ export default function ExercisePlayer({
 
         if (!nextExercise) {
             return;
+        }
+
+        if (
+            unseenCandidates.length === 0
+        ) {
+            setSeenExerciseIds(
+                new Set([
+                    nextExercise.id,
+                ])
+            );
+        } else {
+            setSeenExerciseIds(
+                (current) => {
+                    const next =
+                        new Set(current);
+                    next.add(
+                        nextExercise.id
+                    );
+                    return next;
+                }
+            );
         }
 
         setActiveExercise(

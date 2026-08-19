@@ -125,7 +125,7 @@ export default async function StudentExercisePage({
             .order("created_at", {
                 ascending: false,
             })
-            .limit(40);
+            .limit(1000);
 
     const categoryPerformance = new Map<
         string,
@@ -192,6 +192,25 @@ export default async function StudentExercisePage({
     const lastExerciseId =
         recentResults?.[0]?.exercise_id ??
         null;
+
+    /*
+     * Exercices déjà vus par cet élève dans cette classe.
+     * Un exercice multi-question n'est compté qu'une fois.
+     */
+    const completedExerciseIds =
+        new Set(
+            (recentResults ?? [])
+                .map(
+                    (result) =>
+                        result.exercise_id
+                )
+                .filter(
+                    (
+                        exerciseId
+                    ): exerciseId is string =>
+                        Boolean(exerciseId)
+                )
+        );
 
     type ExerciseCandidate = NonNullable<typeof exercises>[number];
 
@@ -266,8 +285,38 @@ export default async function StudentExercisePage({
                 ? priorityExercises
                 : exercises;
 
-        const withoutImmediateRepeat =
+        /*
+         * Tant qu'il reste des exercices non vus, on ne choisit que parmi eux.
+         */
+        const unseenCandidates =
             candidatePool.filter(
+                (candidate) =>
+                    !completedExerciseIds.has(
+                        candidate.id
+                    )
+            );
+
+        const unseenAllExercises =
+            exercises.filter(
+                (candidate) =>
+                    !completedExerciseIds.has(
+                        candidate.id
+                    )
+            );
+
+        const freshPool =
+            unseenCandidates.length > 0
+                ? unseenCandidates
+                : unseenAllExercises.length > 0
+                  ? unseenAllExercises
+                  : candidatePool;
+
+        /*
+         * Une fois tout vu, un nouveau cycle peut commencer, mais sans
+         * reproposer immédiatement le dernier exercice.
+         */
+        const withoutImmediateRepeat =
+            freshPool.filter(
                 (candidate) =>
                     candidate.id !==
                     lastExerciseId
@@ -277,7 +326,7 @@ export default async function StudentExercisePage({
             withoutImmediateRepeat.length >
                 0
                 ? withoutImmediateRepeat
-                : candidatePool;
+                : freshPool;
 
         exercise =
             finalPool[
@@ -680,6 +729,11 @@ export default async function StudentExercisePage({
                         }
                         exercisePool={
                             exercisePool
+                        }
+                        initiallySeenExerciseIds={
+                            Array.from(
+                                completedExerciseIds
+                            )
                         }
                         classId={id}
                         studentId={student.id}
