@@ -98,7 +98,7 @@ export default async function WorkshopPage({
     const { data: officialPackRows } =
         await supabase
             .from("workshop_exercises")
-            .select("pack_grade")
+            .select("id, pack_grade")
             .eq("is_official", true)
             .not("pack_grade", "is", null);
 
@@ -119,6 +119,67 @@ export default async function WorkshopPage({
         },
         {}
     );
+
+    const { data: importedWorkshopRows } =
+        await supabase
+            .from("exercises")
+            .select("source_workshop_id")
+            .eq("teacher_id", user.id)
+            .not(
+                "source_workshop_id",
+                "is",
+                null
+            );
+
+    const importedWorkshopIds =
+        new Set(
+            (importedWorkshopRows ?? [])
+                .map(
+                    (exercise) =>
+                        exercise.source_workshop_id
+                )
+                .filter(
+                    (
+                        id
+                    ): id is string =>
+                        Boolean(id)
+                )
+        );
+
+    const installedPackCounts = (
+        officialPackRows ?? []
+    ).reduce<Record<string, number>>(
+        (accumulator, exercise) => {
+            const grade =
+                exercise.pack_grade;
+
+            if (
+                grade &&
+                importedWorkshopIds.has(
+                    exercise.id
+                )
+            ) {
+                accumulator[grade] =
+                    (accumulator[grade] ??
+                        0) + 1;
+            }
+
+            return accumulator;
+        },
+        {}
+    );
+
+    const installedGrades =
+        allowedGrades.filter(
+            (grade) =>
+                (packCounts[grade] ?? 0) >
+                    0 &&
+                (installedPackCounts[
+                    grade
+                ] ?? 0) >=
+                    (packCounts[grade] ??
+                        0)
+        );
 
     const officialCount =
         (exercises ?? []).filter(
@@ -179,6 +240,9 @@ export default async function WorkshopPage({
 
                 <StarterPackInstaller
                     counts={packCounts}
+                    installedGrades={
+                        installedGrades
+                    }
                 />
 
                 <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
