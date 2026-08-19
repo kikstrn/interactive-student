@@ -95,6 +95,10 @@ export default function ProductTour({
             return;
         }
 
+        let frameOne = 0;
+        let frameTwo = 0;
+        let settleTimer = 0;
+
         function locateTarget() {
             const element =
                 document.querySelector<HTMLElement>(
@@ -106,30 +110,161 @@ export default function ProductTour({
                 return;
             }
 
-            const rect =
-                element.getBoundingClientRect();
+            const targetElement =
+                element;
 
-            const padding = 8;
+            const isMobile =
+                window.matchMedia(
+                    "(max-width: 767px)"
+                ).matches;
 
-            setBox({
-                top:
-                    rect.top -
-                    padding,
-                left:
-                    rect.left -
-                    padding,
-                width:
-                    rect.width +
-                    padding * 2,
-                height:
-                    rect.height +
-                    padding * 2,
-            });
+            function measure(
+                measuredElement:
+                    HTMLElement
+            ) {
+                const rect =
+                    measuredElement.getBoundingClientRect();
 
-            element.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-            });
+                const padding = 8;
+
+                setBox({
+                    top:
+                        rect.top -
+                        padding,
+                    left:
+                        rect.left -
+                        padding,
+                    width:
+                        rect.width +
+                        padding * 2,
+                    height:
+                        rect.height +
+                        padding * 2,
+                });
+            }
+
+            /*
+             * DESKTOP / TABLETTE :
+             * on conserve volontairement le comportement historique,
+             * puisqu'il est correct dans la vidéo desktop.
+             */
+            if (!isMobile) {
+                measure(
+                    targetElement
+                );
+
+                targetElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                });
+
+                return;
+            }
+
+            /*
+             * MOBILE :
+             * l'ancien code mesurait AVANT le scroll. Le rectangle pouvait
+             * donc garder les coordonnées précédentes le temps que la page
+             * se déplace.
+             *
+             * On scroll d'abord, puis on mesure après deux frames.
+             */
+
+            let mobileTarget =
+                targetElement;
+
+            /*
+             * Étape "Vos classes" :
+             * sur desktop il est agréable d'encadrer toute la section.
+             * Sur mobile la section est très haute et le rectangle descend
+             * quasiment jusqu'en bas de l'écran.
+             *
+             * On encadre donc la première vraie carte de classe si elle
+             * existe, tout en gardant le comportement desktop inchangé.
+             */
+            if (
+                step.target ===
+                "class-list"
+            ) {
+                const firstClassCard =
+                    targetElement.querySelector<HTMLElement>(
+                        'a[href^="/classes/"]'
+                    );
+
+                if (
+                    firstClassCard
+                ) {
+                    mobileTarget =
+                        firstClassCard;
+                }
+            }
+
+            /*
+             * Les onglets du header sont déjà visibles : inutile de faire
+             * défiler la page pour Exercices / Workshop / Paramètres.
+             */
+            const headerTarget =
+                step.target ===
+                    "exercises" ||
+                step.target ===
+                    "workshop" ||
+                step.target ===
+                    "settings";
+
+            if (!headerTarget) {
+                mobileTarget.scrollIntoView({
+                    behavior: "auto",
+                    block:
+                        step.target ===
+                        "create-class"
+                            ? "start"
+                            : "center",
+                    inline: "nearest",
+                });
+
+                /*
+                 * Pour Nouvelle classe, on laisse un peu d'espace sous le
+                 * header afin que la cible ne soit jamais collée tout en haut.
+                 */
+                if (
+                    step.target ===
+                    "create-class"
+                ) {
+                    window.scrollBy({
+                        top: -88,
+                        behavior: "auto",
+                    });
+                }
+            }
+
+            frameOne =
+                window.requestAnimationFrame(
+                    () => {
+                        frameTwo =
+                            window.requestAnimationFrame(
+                                () => {
+                                    measure(
+                                        mobileTarget
+                                    );
+
+                                    /*
+                                     * Safari / PWA peut ajuster légèrement le
+                                     * viewport après le scroll. Une seconde
+                                     * mesure stabilise le rectangle sans
+                                     * toucher au comportement desktop.
+                                     */
+                                    settleTimer =
+                                        window.setTimeout(
+                                            () =>
+                                                measure(
+                                                    mobileTarget
+                                                ),
+                                            100
+                                        );
+                                }
+                            );
+                    }
+                );
         }
 
         const timer = window.setTimeout(
@@ -144,6 +279,15 @@ export default function ProductTour({
 
         return () => {
             window.clearTimeout(timer);
+            window.clearTimeout(
+                settleTimer
+            );
+            window.cancelAnimationFrame(
+                frameOne
+            );
+            window.cancelAnimationFrame(
+                frameTwo
+            );
             window.removeEventListener(
                 "resize",
                 locateTarget
@@ -162,9 +306,13 @@ export default function ProductTour({
                 };
             }
 
+            const isMobile =
+                window.innerWidth < 768;
+
             const cardWidth = Math.min(
                 420,
-                window.innerWidth - 32
+                window.innerWidth -
+                    (isMobile ? 24 : 32)
             );
 
             let left =
@@ -185,15 +333,34 @@ export default function ProductTour({
             const below =
                 box.top +
                 box.height +
-                18;
+                (isMobile ? 14 : 18);
+
+            /*
+             * Mobile : estimation un peu plus réaliste de la hauteur de la
+             * popup. Cela évite qu'elle recouvre la cible, notamment sur
+             * "Vos classes".
+             *
+             * Desktop : valeurs historiques conservées.
+             */
+            const estimatedCardHeight =
+                isMobile
+                    ? 300
+                    : 260;
 
             const top =
-                below + 260 <
-                window.innerHeight
+                below +
+                    estimatedCardHeight <
+                window.innerHeight -
+                    8
                     ? below
                     : Math.max(
-                          16,
-                          box.top - 280
+                          isMobile
+                              ? 10
+                              : 16,
+                          box.top -
+                              (isMobile
+                                  ? 318
+                                  : 280)
                       );
 
             return {
